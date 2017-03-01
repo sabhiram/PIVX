@@ -11,6 +11,7 @@
 #include "script/interpreter.h"
 #include "timedata.h"
 #include "util.h"
+#include "bignum.h"
 
 using namespace std;
 
@@ -249,17 +250,9 @@ static bool GetKernelStakeModifier(uint256 hashBlockFrom, uint64_t& nStakeModifi
     while (nStakeModifierTime < pindexFrom->GetBlockTime() + nStakeModifierSelectionInterval)
     {
         if (!pindexNext)
-        {   // reached best block; may happen if node is behind on block chain
-            if (fPrintProofOfStake || (pindex->GetBlockTime() + nStakeMinAge - nStakeModifierSelectionInterval > GetAdjustedTime()))
-                return error("GetKernelStakeModifier() : reached best block %s at height %d from block %s",
-                    pindex->GetBlockHash().ToString().c_str(), pindex->nHeight, hashBlockFrom.ToString().c_str());
-            else
-			{
-				if(fPrintProofOfStake)
-                    LogPrintf("GetKernelStakeModifier(): FAILED BECAUSE no pindexnext\n");
-				return false;
-			}
-                
+        {
+	        LogPrintf("GetKernelStakeModifier(): FAILED BECAUSE no pindexnext\n");
+  				return false;
         }
 
         pindex = pindexNext;
@@ -288,7 +281,8 @@ bool stakeTargetHit(uint256 hashProofOfStake, int64_t nValueIn, uint256 bnTarget
 	uint256 bnCoinDayWeight = uint256(nValueIn) / 100;
 	
 	// Now check if proof-of-stake hash meets target protocol
-	return (uint256(hashProofOfStake) < bnCoinDayWeight * bnTargetPerCoinDay);
+	bool r = (hashProofOfStake < bnCoinDayWeight * bnTargetPerCoinDay);
+    return r;
 }
 
 //instead of looping outside and reinitializing variables many times, we will give a nTimeTx and also search interval so that we can do all the hashing here
@@ -327,7 +321,29 @@ bool CheckStakeKernelHash(unsigned int nBits, const CBlock blockFrom, const CTra
 	if(fCheck)
 	{
 		hashProofOfStake = stakeHash(nTimeTx, ss, prevout.n, prevout.hash, nTimeBlockFrom); 
-		return stakeTargetHit(hashProofOfStake, nValueIn, bnTargetPerCoinDay);
+		bool r = stakeTargetHit(hashProofOfStake, nValueIn, bnTargetPerCoinDay);
+    if (!r || (debug_local_stake ==1)) {
+        LogPrintf("XX42 nTimeBlockFrom = %d\n" ,nTimeBlockFrom);
+        LogPrintf("XX42 prevoutIndex = %d\n", prevout.n);
+        LogPrintf("XX42 prevOutHash= %s\n",prevout.hash.ToString());
+        LogPrintf("XX42 nTimeTx= %d\n",nTimeTx);
+
+        //get the stake weight - weight is equal to coin amount
+        uint256 bnCoinDayWeight = uint256(nValueIn) / 100;
+        if (!r) LogPrintf("FAIL STAKETARGETHIT------------------------------------------------\n");
+        else if (debug_local_stake) LogPrintf("CHECK OK-------------------------------\n");
+        LogPrintf("XX42 HashPoS = %s\n" ,hashProofOfStake.ToString());
+        LogPrintf("XX42 CoinDayW = %s\n", bnCoinDayWeight.ToString());
+        LogPrintf("XX42 Target = %s\n",bnTargetPerCoinDay.ToString());
+        LogPrintf("XX42 ValueIn = %d\n",nValueIn);
+        LogPrintf("XX42 Result = %s\n",(bnCoinDayWeight * bnTargetPerCoinDay).ToString());
+        if (!r) {
+            LogPrintf("END -----------------------------------------------------\n");
+            LogPrintf("stakeTargetHit=0\n");
+        }
+        debug_local_stake = 0;
+    }
+    return r;
 	}
 	
     bool fSuccess = false;
@@ -342,6 +358,24 @@ bool CheckStakeKernelHash(unsigned int nBits, const CBlock blockFrom, const CTra
 		// if stake hash does not meet the target then continue to next iteration
 		if(!stakeTargetHit(hashProofOfStake, nValueIn, bnTargetPerCoinDay))
 			continue;
+        
+        // Now check if proof-of-stake hash meets target protocol
+        LogPrintf("SUCCESS STAKING-----------------------------------------------------\n");
+        
+        LogPrintf("XX42 nTimeBlockFrom = %d\n" ,nTimeBlockFrom);
+        LogPrintf("XX42 prevoutIndex = %d\n", prevout.n);
+        LogPrintf("XX42 prevOutHash= %s\n",prevout.hash.ToString());
+        LogPrintf("XX42 nTimeTx= %d\n",nTryTime);
+        //get the stake weight - weight is equal to coin amount
+        uint256 bnCoinDayWeight = uint256(nValueIn) / 100;
+        LogPrintf("XX42 HashPoS = %s\n" ,hashProofOfStake.ToString());
+        LogPrintf("XX42 ValueIn = %d\n",nValueIn);
+        LogPrintf("XX42 CoinDayW = %s\n", bnCoinDayWeight.ToString());
+        LogPrintf("XX42 Target = %s\n",bnTargetPerCoinDay.ToString());
+        LogPrintf("XX42 Result = %s\n",(bnCoinDayWeight * bnTargetPerCoinDay).ToString());
+        LogPrintf("END SUCCESS -----------------------------------------------------\n");
+        
+
 		
 		fSuccess = true; // if we make it this far then we have successfully created a stake hash 
 		nTimeTx = nTryTime;
@@ -376,6 +410,9 @@ bool CheckProofOfStake(const CBlock block, uint256& hashProofOfStake)
 
     // Kernel (input 0) must match the stake hash target per coin age (nBits)
     const CTxIn& txin = tx.vin[0];
+    
+    LogPrintf("XX42 txin.prevout.Hash= %s\n",txin.prevout.hash.ToString());
+
 
     // First try finding the previous transaction in database
     uint256 hashBlock;
