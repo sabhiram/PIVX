@@ -182,6 +182,7 @@ public:
         nStatus = 0;
         nSequenceId = 0;
 
+        // Proof of stake
         nMint = 0;
         nMoneySupply = 0;
         nFlags = 0;
@@ -189,6 +190,8 @@ public:
         nStakeModifierChecksum = 0;
         prevoutStake.SetNull();
         nStakeTime = 0;
+        hashProofOfStake = 0;
+                bnChainTrust = 0;
 
         nVersion       = 0;
         hashMerkleRoot = 0;
@@ -212,14 +215,6 @@ public:
         nBits          = block.nBits;
         nNonce         = block.nNonce;
 
-        //Proof of Stake
-        bnChainTrust = 0;
-        nMint = 0;
-        nMoneySupply = 0;
-        nFlags = 0;
-        nStakeModifier = 0;
-        nStakeModifierChecksum = 0;
-        hashProofOfStake = 0;
         CBlock block2(block);
         if (block2.IsProofOfStake())
         {
@@ -420,10 +415,12 @@ public:
         READWRITE(nMoneySupply);
         READWRITE(nFlags);
         READWRITE(nStakeModifier);
+
         if (IsProofOfStake())
         {
             READWRITE(prevoutStake);
             READWRITE(nStakeTime);
+            READWRITE(hashProofOfStake);
         }
         else
         {
