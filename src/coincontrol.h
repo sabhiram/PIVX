@@ -5,6 +5,7 @@
 #ifndef BITCOIN_COINCONTROL_H
 #define BITCOIN_COINCONTROL_H
 
+#include "script/standard.h"
 #include "primitives/transaction.h"
 
 /** Coin Control Features. */
@@ -12,8 +13,10 @@ class CCoinControl
 {
 public:
     CTxDestination destChange;
-    bool useDarkSend;
-    bool useInstantX;
+    bool useObfuScation;
+    bool useSwiftTX;
+    bool fSplitBlock;
+    int nSplitBlock;
     //! If false, allows unselected inputs, but requires all selected inputs be used
     bool fAllowOtherInputs;
     //! Includes watch only addresses which match the ISMINE_WATCH_SOLVABLE criteria
@@ -32,9 +35,13 @@ public:
         fAllowOtherInputs = false;
         fAllowWatchOnly = false;
         setSelected.clear();
-        useInstantX = false;
-        useDarkSend = true;
+        useSwiftTX = false;
+        useObfuScation = true;
+        fAllowOtherInputs = false;
+        fAllowWatchOnly = false;
         nMinimumTotalFee = 0;
+        fSplitBlock = false;
+        nSplitBlock = 1;
     }
 
     bool HasSelected() const

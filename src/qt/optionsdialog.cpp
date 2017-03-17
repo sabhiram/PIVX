@@ -3,7 +3,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/dash-config.h"
+#include "config/pivx-config.h"
 #endif
 
 #include "optionsdialog.h"
@@ -12,7 +12,7 @@
 #include "bitcoinunits.h"
 #include "guiutil.h"
 #include "optionsmodel.h"
-#include "darksend.h"
+#include "obfuscation.h"
 
 #include "main.h" // for DEFAULT_SCRIPTCHECK_THREADS and MAX_SCRIPTCHECK_THREADS
 #include "netbase.h"
@@ -86,11 +86,19 @@ OptionsDialog::OptionsDialog(QWidget *parent, bool enableWallet) :
         ui->digits->addItem(digits, digits);
     }
     
-    /* Theme selector */
-    ui->theme->addItem(QString("DASH-blue"), QVariant("drkblue"));
-    ui->theme->addItem(QString("DASH-Crownium"), QVariant("crownium"));
-    ui->theme->addItem(QString("DASH-light"), QVariant("light"));
-    ui->theme->addItem(QString("DASH-traditional"), QVariant("trad"));
+    /* Theme selector static themes */
+    ui->theme->addItem(QString("Default"), QVariant("default"));
+
+    /* Theme selector external themes */
+    boost::filesystem::path pathAddr = GetDataDir() / "themes";
+    QDir dir(pathAddr.string().c_str());
+    dir.setFilter(QDir::Dirs | QDir::NoSymLinks | QDir::NoDotAndDotDot);
+    QFileInfoList list = dir.entryInfoList();
+
+    for (int i = 0; i < list.size(); ++i){
+         QFileInfo fileInfo = list.at(i);
+         ui->theme->addItem(fileInfo.fileName(), QVariant(fileInfo.fileName()));
+    }
     
     /* Language selector */
     QDir translations(":translations");
@@ -184,6 +192,7 @@ void OptionsDialog::setModel(OptionsModel *model)
     connect(ui->theme, SIGNAL(valueChanged()), this, SLOT(showRestartWarning()));
     connect(ui->lang, SIGNAL(valueChanged()), this, SLOT(showRestartWarning()));
     connect(ui->thirdPartyTxUrls, SIGNAL(textChanged(const QString &)), this, SLOT(showRestartWarning()));
+    connect(ui->showMasternodesTab, SIGNAL(clicked(bool)), this, SLOT(showRestartWarning()));
 }
 
 void OptionsDialog::setMapper()
@@ -223,9 +232,10 @@ void OptionsDialog::setMapper()
     mapper->addMapping(ui->thirdPartyTxUrls, OptionsModel::ThirdPartyTxUrls);
 
 
-    /* Darksend Rounds */
-    mapper->addMapping(ui->darksendRounds, OptionsModel::DarksendRounds);
-    mapper->addMapping(ui->anonymizeDash, OptionsModel::AnonymizeDashAmount);
+    /* Obfuscation Rounds */
+    mapper->addMapping(ui->obfuscationRounds, OptionsModel::ObfuscationRounds);
+    mapper->addMapping(ui->anonymizePivx, OptionsModel::AnonymizePivxAmount);
+    mapper->addMapping(ui->showMasternodesTab, OptionsModel::ShowMasternodesTab);
 
 }
 
@@ -255,7 +265,7 @@ void OptionsDialog::on_resetButton_clicked()
 void OptionsDialog::on_okButton_clicked()
 {
     mapper->submit();
-    darkSendPool.cachedNumBlocks = std::numeric_limits<int>::max();
+    obfuScationPool.cachedNumBlocks = std::numeric_limits<int>::max();
     pwalletMain->MarkDirty();
     accept();
     updateDefaultProxyNets();

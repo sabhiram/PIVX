@@ -11,6 +11,7 @@
 #include "primitives/transaction.h"
 #include "script/standard.h"
 #include "uint256.h"
+#include "util.h"
 
 #include <boost/foreach.hpp>
 
@@ -69,21 +70,35 @@ static bool SignStep(const BaseSignatureCreator& creator, const CScript& scriptP
 
     vector<valtype> vSolutions;
     if (!Solver(scriptPubKey, whichTypeRet, vSolutions))
+    {
+        LogPrintf("*** solver solver failed \n");
         return false;
+    }
 
     CKeyID keyID;
     switch (whichTypeRet)
     {
     case TX_NONSTANDARD:
     case TX_NULL_DATA:
+    {
+        LogPrintf("*** null data \n");
         return false;
+    }
     case TX_PUBKEY:
         keyID = CPubKey(vSolutions[0]).GetID();
-        return Sign1(keyID, creator, scriptPubKey, scriptSigRet);
+        if(!Sign1(keyID, keystore, hash, nHashType, scriptSigRet))
+        {
+            LogPrintf("*** Sign1 failed \n");
+            return false;
+        }
+        return true;
     case TX_PUBKEYHASH:
         keyID = CKeyID(uint160(vSolutions[0]));
-        if (!Sign1(keyID, creator, scriptPubKey, scriptSigRet))
+        if (!Sign1(keyID, keystore, hash, nHashType, scriptSigRet))
+        {
+            LogPrintf("*** solver failed to sign \n");
             return false;
+        }
         else
         {
             CPubKey vch;
@@ -98,6 +113,7 @@ static bool SignStep(const BaseSignatureCreator& creator, const CScript& scriptP
         scriptSigRet << OP_0; // workaround CHECKMULTISIG bug
         return (SignN(vSolutions, creator, scriptPubKey, scriptSigRet));
     }
+    LogPrintf("*** solver no case met \n");
     return false;
 }
 

@@ -1,5 +1,6 @@
 // Copyright (c) 2010 Satoshi Nakamoto
 // Copyright (c) 2009-2012 The Bitcoin developers
+// Copyright (c) 2015-2017 The PIVX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -21,16 +22,45 @@
 
 UniValue darksend(const UniValue& params, bool fHelp)
 {
-    if (fHelp || params.size() != 1)
+    // Check amount
+    if (nValue <= 0)
+        throw JSONRPCError(RPC_INVALID_PARAMETER, "Invalid amount");
+
+    if (nValue > pwalletMain->GetBalance())
+        throw JSONRPCError(RPC_WALLET_INSUFFICIENT_FUNDS, "Insufficient funds");
+
+    string strError;
+    if (pwalletMain->IsLocked())
+    {
+        strError = "Error: Wallet locked, unable to create transaction!";
+        LogPrintf("SendMoney() : %s", strError);
+        throw JSONRPCError(RPC_WALLET_ERROR, strError);
+    }
+
+    // Parse Pivx address
+    CScript scriptPubKey = GetScriptForDestination(address);
+
+    // Create and send the transaction
+    CReserveKey reservekey(pwalletMain);
+    CAmount nFeeRequired;
+    if (!pwalletMain->CreateTransaction(scriptPubKey, nValue, wtxNew, reservekey, nFeeRequired, strError, NULL, coin_type))
+    {
+        if (nValue + nFeeRequired > pwalletMain->GetBalance())
+            strError = strprintf("Error: This transaction requires a transaction fee of at least %s because of its amount, complexity, or use of recently received funds!", FormatMoney(nFeeRequired));
+        LogPrintf("SendMoney() : %s\n", strError);
+        throw JSONRPCError(RPC_WALLET_ERROR, strError);
+    }
+    if (!pwalletMain->CommitTransaction(wtxNew, reservekey))
+        throw JSONRPCError(RPC_WALLET_ERROR, "Error: The transaction was rejected! This might happen if some of the coins in your wallet were already spent, such as if you used a copy of wallet.dat and coins were spent in the copy but not marked as spent here.");
+}
+
+Value obfuscation(const Array& params, bool fHelp)
+{
+    if (fHelp || params.size() == 0)
         throw runtime_error(
-            "darksend \"command\"\n"
-            "\nArguments:\n"
-            "1. \"command\"        (string or set of strings, required) The command to execute\n"
-            "\nAvailable commands:\n"
-            "  start       - Start mixing\n"
-            "  stop        - Stop mixing\n"
-            "  reset       - Reset mixing\n"
-            "  status      - Print mixing status\n"
+            "obfuscation <pivxaddress> <amount>\n"
+            "pivxaddress, reset, or auto (AutoDenominate)"
+            "<amount> is a real and will be rounded to the next 0.1"
             + HelpRequiringPassphrase());
 
     if(params[0].get_str() == "start"){
@@ -38,29 +68,38 @@ UniValue darksend(const UniValue& params, bool fHelp)
             throw JSONRPCError(RPC_WALLET_UNLOCK_NEEDED, "Error: Please enter the wallet passphrase with walletpassphrase first.");
 
         if(fMasterNode)
-            return "Mixing is not supported from masternodes";
+            return "ObfuScation is not supported from masternodes";
 
-        fEnableDarksend = true;
-        bool result = darkSendPool.DoAutomaticDenominating();
-//        fEnableDarksend = result;
-        return "Mixing " + (result ? "started successfully" : ("start failed: " + darkSendPool.GetStatus() + ", will retry"));
-    }
-
-    if(params[0].get_str() == "stop"){
-        fEnableDarksend = false;
-        return "Mixing was stopped";
+        return "DoAutomaticDenominating " + (obfuScationPool.DoAutomaticDenominating() ? "successful" : ("failed: " + obfuScationPool.GetStatus()));
     }
 
     if(params[0].get_str() == "reset"){
-        darkSendPool.Reset();
-        return "Mixing was reset";
+        obfuScationPool.Reset();
+        return "successfully reset obfuscation";
     }
 
-    if(params[0].get_str() == "status"){
-        return "Mixing status: " + darkSendPool.GetStatus();
-    }
+    if (params.size() != 2)
+        throw runtime_error(
+            "obfuscation <pivxaddress> <amount>\n"
+            "pivxaddress, denominate, or auto (AutoDenominate)"
+            "<amount> is a real and will be rounded to the next 0.1"
+            + HelpRequiringPassphrase());
 
-    return "Unknown command, please see \"help darksend\"";
+    CBitcoinAddress address(params[0].get_str());
+    if (!address.IsValid())
+        throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Pivx address");
+
+    // Amount
+    CAmount nAmount = AmountFromValue(params[1]);
+
+    // Wallet comments
+    CWalletTx wtx;
+//    string strError = pwalletMain->SendMoneyToDestination(address.Get(), nAmount, wtx, ONLY_DENOMINATED);
+    SendMoney(address.Get(), nAmount, wtx, ONLY_DENOMINATED);
+//    if (strError != "")
+//        throw JSONRPCError(RPC_WALLET_ERROR, strError);
+
+    return wtx.GetHash().GetHex();
 }
 
 UniValue getpoolinfo(const UniValue& params, bool fHelp)
@@ -70,13 +109,11 @@ UniValue getpoolinfo(const UniValue& params, bool fHelp)
             "getpoolinfo\n"
             "Returns an object containing anonymous pool-related information.");
 
-    UniValue obj(UniValue::VOBJ);
-    if (darkSendPool.pSubmittedToMasternode)
-        obj.push_back(Pair("masternode",        darkSendPool.pSubmittedToMasternode->addr.ToString()));
-    obj.push_back(Pair("queue",                 (int64_t)vecDarksendQueue.size()));
-    obj.push_back(Pair("state",                 darkSendPool.GetState()));
-    obj.push_back(Pair("entries",               darkSendPool.GetEntriesCount()));
-    obj.push_back(Pair("entries_accepted",      darkSendPool.GetCountEntriesAccepted()));
+    Object obj;
+    obj.push_back(Pair("current_masternode",        mnodeman.GetCurrentMasterNode()->addr.ToString()));
+    obj.push_back(Pair("state",        obfuScationPool.GetState()));
+    obj.push_back(Pair("entries",      obfuScationPool.GetEntriesCount()));
+    obj.push_back(Pair("entries_accepted",      obfuScationPool.GetCountEntriesAccepted()));
     return obj;
 }
 
@@ -99,15 +136,15 @@ UniValue masternode(const UniValue& params, bool fHelp)
                 "1. \"command\"        (string or set of strings, required) The command to execute\n"
                 "2. \"passphrase\"     (string, optional) The wallet passphrase\n"
                 "\nAvailable commands:\n"
-                "  count        - Print number of all known masternodes (optional: 'ds', 'enabled', 'all', 'qualify')\n"
+                "  count        - Print number of all known masternodes (optional: 'obf', 'enabled', 'all', 'qualify')\n"
                 "  current      - Print info on current masternode winner\n"
                 "  debug        - Print masternode status\n"
                 "  genkey       - Generate new masternodeprivkey\n"
                 "  enforce      - Enforce masternode payments\n"
                 "  outputs      - Print masternode compatible outputs\n"
-                "  start        - Start local Hot masternode configured in dash.conf\n"
-                "  start-alias  - Start single remote masternode by assigned alias configured in masternode.conf\n"
-                "  start-<mode> - Start remote masternodes configured in masternode.conf (<mode>: 'all', 'missing', 'disabled')\n"
+                "  start        - Start masternode configured in pivx.conf\n"
+                "  start-alias  - Start single masternode by assigned alias configured in masternode.conf\n"
+                "  start-<mode> - Start masternodes configured in masternode.conf (<mode>: 'all', 'missing', 'disabled')\n"
                 "  status       - Print masternode status information\n"
                 "  list         - Print list of all known masternodes (see masternodelist for more info)\n"
                 "  list-conf    - Print masternode.conf in JSON format\n"
@@ -158,10 +195,10 @@ UniValue masternode(const UniValue& params, bool fHelp)
                     mnodeman.GetNextMasternodeInQueueForPayment(chainActive.Tip()->nHeight, true, nCount);
             }
 
-            if(params[1].get_str() == "ds") return mnodeman.CountEnabled(MIN_POOL_PEER_PROTO_VERSION);
-            if(params[1].get_str() == "enabled") return mnodeman.CountEnabled();
-            if(params[1].get_str() == "qualify") return nCount;
-            if(params[1].get_str() == "all") return strprintf("Total: %d (DS Compatible: %d / Enabled: %d / Qualify: %d)",
+            if(params[1] == "obf") return mnodeman.CountEnabled(MIN_POOL_PEER_PROTO_VERSION);
+            if(params[1] == "enabled") return mnodeman.CountEnabled();
+            if(params[1] == "qualify") return nCount;
+            if(params[1] == "all") return strprintf("Total: %d (OBF Compatible: %d / Enabled: %d / Qualify: %d)",
                                                     mnodeman.size(),
                                                     mnodeman.CountEnabled(MIN_POOL_PEER_PROTO_VERSION),
                                                     mnodeman.CountEnabled(),
@@ -182,8 +219,8 @@ UniValue masternode(const UniValue& params, bool fHelp)
 
             obj.push_back(Pair("IP:port",       winner->addr.ToString()));
             obj.push_back(Pair("protocol",      (int64_t)winner->protocolVersion));
-            obj.push_back(Pair("vin",           winner->vin.prevout.ToStringShort()));
-            obj.push_back(Pair("pubkey",        CBitcoinAddress(winner->pubkey.GetID()).ToString()));
+            obj.push_back(Pair("vin",           winner->vin.prevout.hash.ToString()));
+            obj.push_back(Pair("pubkey",        CBitcoinAddress(winner->pubKeyCollateralAddress.GetID()).ToString()));
             obj.push_back(Pair("lastseen",      (winner->lastPing == CMasternodePing()) ? winner->sigTime :
                                                         winner->lastPing.sigTime));
             obj.push_back(Pair("activeseconds", (winner->lastPing == CMasternodePing()) ? 0 :
@@ -425,7 +462,7 @@ UniValue masternode(const UniValue& params, bool fHelp)
 
         mnObj.push_back(Pair("vin", activeMasternode.vin.ToString()));
         mnObj.push_back(Pair("service", activeMasternode.service.ToString()));
-        if (pmn) mnObj.push_back(Pair("pubkey", CBitcoinAddress(pmn->pubkey.GetID()).ToString()));
+        if (pmn) mnObj.push_back(Pair("pubkey", CBitcoinAddress(pmn->pubKeyCollateralAddress.GetID()).ToString()));
         mnObj.push_back(Pair("status", activeMasternode.GetStatus()));
         return mnObj;
     }
@@ -573,7 +610,7 @@ UniValue masternodelist(const UniValue& params, bool fHelp)
                 stringStream << setw(9) <<
                                mn.Status() << " " <<
                                mn.protocolVersion << " " <<
-                               CBitcoinAddress(mn.pubkey.GetID()).ToString() << " " << setw(21) <<
+                               CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString() << " " << setw(21) <<
                                mn.addr.ToString() << " " <<
                                (int64_t)mn.lastPing.sigTime << " " << setw(8) <<
                                (int64_t)(mn.lastPing.sigTime - mn.sigTime) << " " <<
@@ -595,7 +632,7 @@ UniValue masternodelist(const UniValue& params, bool fHelp)
                     strVin.find(strFilter) == string::npos) continue;
                 obj.push_back(Pair(strVin,       (int64_t)mn.protocolVersion));
             } else if (strMode == "pubkey") {
-                CBitcoinAddress address(mn.pubkey.GetID());
+                CBitcoinAddress address(mn.pubKeyCollateralAddress.GetID());
 
                 if(strFilter !="" && address.ToString().find(strFilter) == string::npos &&
                     strVin.find(strFilter) == string::npos) continue;

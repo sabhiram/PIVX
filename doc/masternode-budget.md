@@ -1,7 +1,7 @@
 Masternode Budget API
 =======================
 
-Dash now supports full decentralized budgets that are paid directly from the blockchain via superblocks once per month.
+Pivx now supports full decentralized budgets that are paid directly from the blockchain via superblocks once per month. 
 
 Budgets go through a series of stages before being paid:
  * prepare - create a special transaction that destroys coins in order to make a proposal
@@ -16,17 +16,15 @@ Budgets go through a series of stages before being paid:
 1. Prepare collateral transaction
 --
 
-In this transaction we prepare collateral for "_cool-project_". This proposal will pay _1200_ DASH, _12_ times over the course of a year totaling _24000_ DASH.
-
-**Warning: if you change any fields within this command, the collateral transaction will become invalid.**
-
-Format: ```mnbudget prepare proposal-name url payment-count block-start dash-address monthly-payment-dash```
+mnbudget prepare proposal-name url payment_count block_start pivx_address monthly_payment_pivx [use_ix(true|false)]
 
 Example: ```mnbudget prepare cool-project http://www.cool-project/one.json 12 100000 y6R9oN12KnB9zydzTLc3LikD9cCjjQzYG7 1200 true```
 
 Output: ```464a0eb70ea91c94295214df48c47baa72b3876cfb658744aaf863c7b5bf1ff0```
 
-This is the collateral hash, copy this output for the next step.
+In this transaction we prepare collateral for "_cool-project_". This proposal will pay _1200_ PIVX, _12_ times over the course of a year totaling _24000_ PIVX. 
+
+**Warning -- if you change any fields within this command, the collateral transaction will become invalid.** 
 
 2 Submit proposal to network
 --
@@ -125,32 +123,22 @@ After you get enough votes, execute ```mnbudget projection``` to see if you made
 6. Get paid
 --
 
-When block ```1000000``` is reached you'll receive a payment for ```1200``` DASH to ```y6R9oN12KnB9zydzTLc3LikD9cCjjQzYG7```.
+When block ```1000000``` is reached you'll receive a payment for ```1200``` PIVX. 
 
-7. Command list
---
-
-The following RPC commands are supported:
-
- - mnbudget "command"... ( "passphrase" )
-  - check              - Scan proposals and remove invalid from proposals list
-  - prepare            - Prepare proposal by signing and creating tx
-  - submit             - Submit proposal to network
-  - getproposalhash    - Get proposal hash(es) by proposal name
-  - getproposal        - Show proposal
-  - getvotes           - Show detailed votes list for proposal
-  - list               - List all proposals
-  - nextblock          - Get info about next superblock for budget system
-  - nextsuperblocksize - Get superblock size for a given blockheight
-  - projection         - Show the projection of which proposals will be paid the next cycle
-  - vote               - Vote on a proposal by single masternode (using dash.conf setup)
-  - vote-many          - Vote on a proposal by all masternodes (using masternode.conf setup)
-  - vote-alias         - Vote on a proposal by alias
- - mnfinalbudget "command"... ( "passphrase" )
-  - vote-many   - Vote on a finalized budget
-  - vote        - Vote on a finalized budget
-  - show        - Show existing finalized budgets
-  - getvotes    - Get vote information for each finalized budget
-  - prepare     - Manually prepare a finalized budget
-  - submit      - Manually submit a finalized budget
-
+The following new RPC commands are supported:
+- mnbudget "command"... ( "passphrase" )
+ - prepare            - Prepare proposal for network by signing and creating tx
+ - submit             - Submit proposal for network
+ - vote-many          - Vote on a Pivx initiative
+ - vote-alias         - Vote on a Pivx initiative
+ - vote               - Vote on a Pivx initiative/budget
+ - getvotes           - Show current masternode budgets
+ - getinfo            - Show current masternode budgets
+ - show               - Show all budgets
+ - projection         - Show the projection of which proposals will be paid the next cycle
+ - check              - Scan proposals and remove invalid
+￼
+- mnfinalbudget "command"... ( "passphrase" )
+ - vote-many   - Vote on a finalized budget
+ - vote        - Vote on a finalized budget
+ - show        - Show existing finalized budgets

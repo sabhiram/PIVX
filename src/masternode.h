@@ -1,5 +1,6 @@
 
-// Copyright (c) 2014-2016 The Dash Core developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2017 The PIVX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #ifndef MASTERNODE_H
@@ -99,9 +100,8 @@ public:
 
 };
 
-
 //
-// The Masternode Class. For managing the Darksend process. It contains the input of the 1000DRK, signature to prove
+// The Masternode Class. For managing the Obfuscation process. It contains the input of the 10000 PIV, signature to prove
 // it's the one who own that ip address and code for calculating the payment election.
 //
 class CMasternode
@@ -115,16 +115,21 @@ public:
         MASTERNODE_PRE_ENABLED,
         MASTERNODE_ENABLED,
         MASTERNODE_EXPIRED,
-        MASTERNODE_VIN_SPENT,
+        MASTERNODE_OUTPOINT_SPENT,
         MASTERNODE_REMOVE,
+        MASTERNODE_WATCHDOG_EXPIRED,
+        MASTERNODE_POSE_BAN,
+        MASTERNODE_VIN_SPENT,
         MASTERNODE_POS_ERROR
     };
 
     CTxIn vin;
     CService addr;
-    CPubKey pubkey;
-    CPubKey pubkey2;
-    std::vector<unsigned char> vchSig;
+    CPubKey pubKeyCollateralAddress;
+    CPubKey pubKeyMasternode;
+    CPubKey pubKeyCollateralAddress1;
+    CPubKey pubKeyMasternode1;
+    std::vector<unsigned char> sig;
     int activeState;
     int64_t sigTime; //mnb message time
     int cacheInputAge;
@@ -132,6 +137,7 @@ public:
     bool unitTest;
     bool allowFreeTx;
     int protocolVersion;
+    int nActiveState;
     int64_t nLastDsq; //the dsq count from the last dsq broadcast of this node
     int nScanningErrorCount;
     int nLastScanningErrorBlockHeight;
@@ -151,9 +157,9 @@ public:
         // the two classes are effectively swapped
         swap(first.vin, second.vin);
         swap(first.addr, second.addr);
-        swap(first.pubkey, second.pubkey);
-        swap(first.pubkey2, second.pubkey2);
-        swap(first.vchSig, second.vchSig);
+        swap(first.pubKeyCollateralAddress, second.pubKeyCollateralAddress);
+        swap(first.pubKeyMasternode, second.pubKeyMasternode);
+        swap(first.sig, second.sig);
         swap(first.activeState, second.activeState);
         swap(first.sigTime, second.sigTime);
         swap(first.lastPing, second.lastPing);
@@ -191,9 +197,9 @@ public:
 
             READWRITE(vin);
             READWRITE(addr);
-            READWRITE(pubkey);
-            READWRITE(pubkey2);
-            READWRITE(vchSig);
+            READWRITE(pubKeyCollateralAddress);
+            READWRITE(pubKeyMasternode);
+            READWRITE(sig);
             READWRITE(sigTime);
             READWRITE(protocolVersion);
             READWRITE(activeState);
@@ -263,6 +269,8 @@ public:
         return cacheInputAge + (chainActive.Tip()->nHeight - cacheInputAgeBlock);
     }
 
+    std::string GetStatus();
+    
     std::string Status() {
         std::string strStatus = "unknown";
 
@@ -277,6 +285,7 @@ public:
     }
 
     int64_t GetLastPaid();
+    bool IsValidNetAddr();
 
 };
 
@@ -304,9 +313,9 @@ public:
     inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
         READWRITE(vin);
         READWRITE(addr);
-        READWRITE(pubkey);
-        READWRITE(pubkey2);
-        READWRITE(vchSig);
+        READWRITE(pubKeyCollateralAddress);
+        READWRITE(pubKeyMasternode);
+        READWRITE(sig);
         READWRITE(sigTime);
         READWRITE(protocolVersion);
         READWRITE(lastPing);
@@ -315,12 +324,14 @@ public:
 
     uint256 GetHash(){
         CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
-        ss << vin;
-        ss << pubkey;
         ss << sigTime;
+        ss << pubKeyCollateralAddress;
         return ss.GetHash();
     }
 
+/// Create Masternode broadcast, needs to be relayed manually after that
+    static bool Create(CTxIn vin, CService service, CKey keyCollateralAddressNew, CPubKey pubKeyCollateralAddressNew, CKey keyMasternodeNew, CPubKey pubKeyMasternodeNew, std::string &strErrorRet, CMasternodeBroadcast &mnbRet);
+    static bool Create(std::string strService, std::string strKey, std::string strTxHash, std::string strOutputIndex, std::string& strErrorRet, CMasternodeBroadcast &mnbRet, bool fOffline = false);
 };
 
 #endif

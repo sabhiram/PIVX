@@ -47,6 +47,7 @@ public:
     void setAddress(const QString &address);
     void pasteEntry(const SendCoinsRecipient &rv);
     bool handlePaymentRequest(const SendCoinsRecipient &recipient);
+    bool fSplitBlock;
 
 public Q_SLOTS:
     void clear();
@@ -79,7 +80,7 @@ private Q_SLOTS:
     void on_buttonMinimizeFee_clicked();
     void removeEntry(SendCoinsEntry* entry);
     void updateDisplayUnit();
-    void updateInstantX();
+    void updateSwiftTX();
     void coinControlFeatureChanged(bool);
     void coinControlButtonClicked();
     void coinControlChangeChecked(int);
@@ -93,6 +94,8 @@ private Q_SLOTS:
     void coinControlClipboardPriority();
     void coinControlClipboardLowOutput();
     void coinControlClipboardChange();
+    void splitBlockChecked(int);
+    void splitBlockLineEditChanged(const QString & text);
     void setMinimumFee();
     void updateFeeSectionControls();
     void updateMinFeeLabel();

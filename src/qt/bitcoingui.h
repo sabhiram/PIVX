@@ -6,7 +6,7 @@
 #define BITCOIN_QT_BITCOINGUI_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/dash-config.h"
+#include "config/pivx-config.h"
 #endif
 
 #include "amount.h"
@@ -23,13 +23,14 @@ class ClientModel;
 class NetworkStyle;
 class Notificator;
 class OptionsModel;
-class PlatformStyle;
+class tradingDialog;
+class BlockExplorer;
 class RPCConsole;
 class SendCoinsRecipient;
 class UnitDisplayStatusBarControl;
 class WalletFrame;
 class WalletModel;
-class HelpMessageDialog;
+class MasternodeList;
 
 class CWallet;
 
@@ -69,6 +70,8 @@ public:
     void removeAllWallets();
 #endif // ENABLE_WALLET
     bool enableWallet;
+    bool fMultiSend;
+    bool fMultiSendNotify;
 
 protected:
     void changeEvent(QEvent *e);
@@ -82,6 +85,7 @@ private:
     WalletFrame *walletFrame;
 
     UnitDisplayStatusBarControl *unitDisplayControl;
+    QLabel *labelStakingIcon;
     QLabel *labelEncryptionIcon;
     QPushButton *labelConnectionsIcon;
     QLabel *labelBlocksIcon;
@@ -92,6 +96,7 @@ private:
     QMenuBar *appMenuBar;
     QAction *overviewAction;
     QAction *historyAction;
+    QAction *masternodeAction;
     QAction *quitAction;
     QAction *sendCoinsAction;
     QAction *sendCoinsMenuAction;
@@ -99,6 +104,7 @@ private:
     QAction *usedReceivingAddressesAction;
     QAction *signMessageAction;
     QAction *verifyMessageAction;
+    QAction *bip38ToolAction;
     QAction *aboutAction;
     QAction *receiveCoinsAction;
     QAction *receiveCoinsMenuAction;
@@ -119,13 +125,17 @@ private:
     QAction *openMNConfEditorAction;
     QAction *showBackupsAction;
     QAction *openAction;
+    QAction *openTradingwindowAction;
+	QAction *openBlockExplorerAction;
     QAction *showHelpMessageAction;
+    QAction *multiSendAction;
 
     QSystemTrayIcon *trayIcon;
     QMenu *trayIconMenu;
     Notificator *notificator;
     RPCConsole *rpcConsole;
-    HelpMessageDialog *helpMessageDialog;
+    tradingDialog  *tradingWindow;
+    BlockExplorer  *explorerWindow;
 
     /** Keep track of previous number of blocks, to detect progress */
     int prevBlocks;
@@ -177,6 +187,8 @@ public Q_SLOTS:
     */
     void message(const QString &title, const QString &message, unsigned int style, bool *ret = NULL);
 
+    void setStakingStatus();
+
 #ifdef ENABLE_WALLET
     /** Set the encryption status as shown in the UI.
        @param[in] status            current encryption status
@@ -196,6 +208,12 @@ private Q_SLOTS:
     void gotoOverviewPage();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
+    /** Switch to Trading Page */
+    void gotoTradingPage(); 
+    /** Switch to Explorer Page */
+    void gotoBlockExplorerPage(); 
+    /** Switch to masternode page */
+    void gotoMasternodePage(); 
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
@@ -205,9 +223,15 @@ private Q_SLOTS:
     void gotoSignMessageTab(QString addr = "");
     /** Show Sign/Verify Message dialog and switch to verify message tab */
     void gotoVerifyMessageTab(QString addr = "");
+    /** Show MultiSend Dialog */
+    void gotoMultiSendDialog();
+
+    /** Show BIP 38 tool - default to Encryption tab */
+    void gotoBip38Tool();
 
     /** Show open dialog */
     void openClicked();
+
 #endif // ENABLE_WALLET
     /** Show configuration dialog */
     void optionsClicked();

@@ -38,6 +38,12 @@ bool CCoins::Spend(uint32_t nPos)
         return false;
     vout[nPos].SetNull();
     Cleanup();
+    if (vout.size() == 0) {
+        undo.nHeight = nHeight;
+        undo.fCoinBase = fCoinBase;
+        undo.fCoinStake = fCoinStake;
+        undo.nVersion = this->nVersion;
+    }
     return true;
 }
 
@@ -259,8 +265,7 @@ bool CCoinsViewCache::HaveInputs(const CTransaction& tx) const
 
 double CCoinsViewCache::GetPriority(const CTransaction &tx, int nHeight, CAmount &inChainInputValue) const
 {
-    inChainInputValue = 0;
-    if (tx.IsCoinBase())
+    if (tx.IsCoinBase() || tx.IsCoinStake())
         return 0.0;
     double dResult = 0.0;
     BOOST_FOREACH(const CTxIn& txin, tx.vin)

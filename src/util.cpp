@@ -1,11 +1,12 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2015 The Bitcoin Core developers
-// Copyright (c) 2014-2016 The Dash Core developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2017 The PIVX developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #if defined(HAVE_CONFIG_H)
-#include "config/dash-config.h"
+#include "config/pivx-config.h"
 #endif
 
 #include "util.h"
@@ -102,23 +103,22 @@ namespace boost {
 
 using namespace std;
 
-//Dash only features
+//PIVX only features
 bool fMasterNode = false;
 string strMasterNodePrivKey = "";
 string strMasterNodeAddr = "";
 bool fLiteMode = false;
-bool fEnableInstantX = true;
-int nInstantXDepth = 5;
-int nDarksendRounds = 2;
-int nAnonymizeDashAmount = 1000;
+bool fEnableSwiftTX = true;
+int nSwiftTXDepth = 5;
+int nObfuscationRounds = 2;
+int nAnonymizePivxAmount = 1000;
 int nLiquidityProvider = 0;
 /** Spork enforcement enabled time */
 int64_t enforceMasternodePaymentsTime = 4085657524;
 bool fSucessfullyLoaded = false;
-bool fEnableDarksend = false;
-bool fDarksendMultiSession = false;
-/** All denominations used by darksend */
-std::vector<CAmount> darkSendDenominations;
+bool fEnableObfuscation = false;
+/** All denominations used by obfuscation */
+std::vector<int64_t> obfuScationDenominations;
 string strBudgetMode = "";
 
 const char * const BITCOIN_CONF_FILENAME = "dash.conf";
@@ -276,10 +276,10 @@ bool LogAcceptCategory(const char* category)
             const vector<string>& categories = mapMultiArgs["-debug"];
             ptrCategory.reset(new set<string>(categories.begin(), categories.end()));
             // thread_specific_ptr automatically deletes the set when the thread ends.
-            // "dash" is a composite category enabling all Dash-related debug output
-            if(ptrCategory->count(string("dash"))) {
-                ptrCategory->insert(string("darksend"));
-                ptrCategory->insert(string("instantx"));
+            // "pivx" is a composite category enabling all PIVX-related debug output
+            if(ptrCategory->count(string("pivx"))) {
+                ptrCategory->insert(string("obfuscation"));
+                ptrCategory->insert(string("swifttx"));
                 ptrCategory->insert(string("masternode"));
                 ptrCategory->insert(string("keepass"));
                 ptrCategory->insert(string("mnpayments"));
@@ -500,7 +500,7 @@ static std::string FormatException(const std::exception* pex, const char* pszThr
     char pszModule[MAX_PATH] = "";
     GetModuleFileNameA(NULL, pszModule, sizeof(pszModule));
 #else
-    const char* pszModule = "dash";
+    const char* pszModule = "pivx";
 #endif
     if (pex)
         return strprintf(
@@ -520,13 +520,13 @@ void PrintExceptionContinue(const std::exception* pex, const char* pszThread)
 boost::filesystem::path GetDefaultDataDir()
 {
     namespace fs = boost::filesystem;
-    // Windows < Vista: C:\Documents and Settings\Username\Application Data\Dash
-    // Windows >= Vista: C:\Users\Username\AppData\Roaming\Dash
-    // Mac: ~/Library/Application Support/Dash
-    // Unix: ~/.dash
+    // Windows < Vista: C:\Documents and Settings\Username\Application Data\PIVX
+    // Windows >= Vista: C:\Users\Username\AppData\Roaming\PIVX
+    // Mac: ~/Library/Application Support/PIVX
+    // Unix: ~/.pivx
 #ifdef WIN32
     // Windows
-    return GetSpecialFolderPath(CSIDL_APPDATA) / "Dash";
+    return GetSpecialFolderPath(CSIDL_APPDATA) / "PIVX";
 #else
     fs::path pathRet;
     char* pszHome = getenv("HOME");
@@ -538,10 +538,10 @@ boost::filesystem::path GetDefaultDataDir()
     // Mac
     pathRet /= "Library/Application Support";
     TryCreateDirectory(pathRet);
-    return pathRet / "Dash";
+    return pathRet / "PIVX";
 #else
     // Unix
-    return pathRet / ".dash";
+    return pathRet / ".pivx";
 #endif
 #endif
 }
@@ -588,7 +588,7 @@ void ClearDatadirCache()
 
 boost::filesystem::path GetConfigFile()
 {
-    boost::filesystem::path pathConfigFile(GetArg("-conf", BITCOIN_CONF_FILENAME));
+    boost::filesystem::path pathConfigFile(GetArg("-conf", "pivx.conf"));
     if (!pathConfigFile.is_complete())
         pathConfigFile = GetDataDir(false) / pathConfigFile;
 
@@ -607,7 +607,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 {
     boost::filesystem::ifstream streamConfig(GetConfigFile());
     if (!streamConfig.good()){
-        // Create empty dash.conf if it does not excist
+        // Create empty pivx.conf if it does not exist
         FILE* configFile = fopen(GetConfigFile().string().c_str(), "a");
         if (configFile != NULL)
             fclose(configFile);
@@ -619,7 +619,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 
     for (boost::program_options::detail::config_file_iterator it(streamConfig, setOptions), end; it != end; ++it)
     {
-        // Don't overwrite existing settings so command line settings override dash.conf
+        // Don't overwrite existing settings so command line settings override pivx.conf
         string strKey = string("-") + it->string_key;
         string strValue = it->value[0];
         InterpretNegativeSetting(strKey, strValue);
@@ -634,7 +634,7 @@ void ReadConfigFile(map<string, string>& mapSettingsRet,
 #ifndef WIN32
 boost::filesystem::path GetPidFile()
 {
-    boost::filesystem::path pathPidFile(GetArg("-pid", BITCOIN_PID_FILENAME));
+    boost::filesystem::path pathPidFile(GetArg("-pid", "pivxd.pid"));
     if (!pathPidFile.is_complete()) pathPidFile = GetDataDir() / pathPidFile;
     return pathPidFile;
 }

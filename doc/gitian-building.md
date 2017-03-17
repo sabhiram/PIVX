@@ -1,9 +1,9 @@
 Gitian building
 ================
 
-*Setup instructions for a Gitian build of Dash using a Debian VM or physical system.*
+*Setup instructions for a gitian build of PIVX using a Debian VM or physical system.*
 
-Gitian is the deterministic build process that is used to build the Dash
+Gitian is the deterministic build process that is used to build the PIVX
 Core executables. It provides a way to be reasonably sure that the
 executables are really built from the source on GitHub. It also makes sure that
 the same, tested dependencies are used and statically built into the executable.
@@ -11,7 +11,7 @@ the same, tested dependencies are used and statically built into the executable.
 Multiple developers build the source code by following a specific descriptor
 ("recipe"), cryptographically sign the result, and upload the resulting signature.
 These results are compared and only if they match, the build is accepted and uploaded
-to dash.org.
+to pivx-crypto.com.
 
 More independent Gitian builders are needed, which is why this guide exists.
 It is preferred you follow these steps yourself instead of using someone else's
@@ -26,7 +26,7 @@ Table of Contents
 - [Installing Gitian](#installing-gitian)
 - [Setting up the Gitian image](#setting-up-the-gitian-image)
 - [Getting and building the inputs](#getting-and-building-the-inputs)
-- [Building Dash](#building-dash)
+- [Building PIVX](#building-pivx)
 - [Building an alternative repository](#building-an-alternative-repository)
 - [Signing externally](#signing-externally)
 - [Uploading signatures](#uploading-signatures)
@@ -252,7 +252,7 @@ First we need to log in as `root` to set up dependencies and make sure that our
 user can use the sudo command. Type/paste the following in the terminal:
 
 ```bash
-apt-get install git ruby sudo apt-cacher-ng qemu-utils debootstrap lxc python-cheetah parted kpartx bridge-utils make ubuntu-archive-keyring
+apt-get install make git ruby sudo apt-cacher-ng qemu-utils debootstrap lxc python-cheetah parted kpartx bridge-utils
 adduser debian sudo
 ```
 
@@ -300,11 +300,14 @@ cd ..
 
 **Note**: When sudo asks for a password, enter the password for the user *debian* not for *root*.
 
-Clone the git repositories for dash and Gitian.
+Clone the git repositories for pivx and gitian and then checkout the pivx version that you want to build.
 
 ```bash
 git clone https://github.com/devrandom/gitian-builder.git
-git clone https://github.com/dashpay/dash
+git clone https://github.com/pivx-crypto/pivx.git
+cd pivx
+git checkout v${VERSION}
+cd ..
 ```
 
 Setting up the Gitian image
@@ -338,17 +341,16 @@ There will be a lot of warnings printed during the build of the image. These can
 Getting and building the inputs
 --------------------------------
 
-Follow the instructions in [doc/release-process.md](release-process.md#fetch-and-build-inputs-first-time-or-when-dependency-versions-change)
-in the dash repository under 'Fetch and build inputs' to install sources which require
-manual intervention. Also optionally follow the next step: 'Seed the Gitian sources cache
-and offline git repositories' which will fetch the remaining files required for building
-offline.
+Follow the instructions in [doc/release-process.md](release-process.md) in the pivx repository
+under 'Fetch and build inputs' to install sources which require manual intervention. Also follow
+the next step: 'Seed the Gitian sources cache', which will fetch all necessary source files allowing
+for gitian to work offline.
 
-Building Dash
+Building PIVX
 ----------------
 
-To build Dash (for Linux, OS X and Windows) just follow the steps under 'perform
-Gitian builds' in [doc/release-process.md](release-process.md#perform-gitian-builds) in the dash repository.
+To build PIVX (for Linux, OSX and Windows) just follow the steps under 'perform
+gitian builds' in [doc/release-process.md](release-process.md) in the pivx repository.
 
 This may take some time as it will build all the dependencies needed for each descriptor.
 These dependencies will be cached after a successful build to avoid rebuilding them when possible.
@@ -363,12 +365,12 @@ tail -f var/build.log
 Output from `gbuild` will look something like
 
 ```bash
-    Initialized empty Git repository in /home/debian/gitian-builder/inputs/dash/.git/
-    remote: Counting objects: 57959, done.
-    remote: Total 57959 (delta 0), reused 0 (delta 0), pack-reused 57958
-    Receiving objects: 100% (57959/57959), 53.76 MiB | 484.00 KiB/s, done.
-    Resolving deltas: 100% (41590/41590), done.
-    From https://github.com/dashpay/dash
+    Initialized empty Git repository in /home/debian/gitian-builder/inputs/pivx/.git/
+    remote: Reusing existing pack: 35606, done.
+    remote: Total 35606 (delta 0), reused 0 (delta 0)
+    Receiving objects: 100% (35606/35606), 26.52 MiB | 4.28 MiB/s, done.
+    Resolving deltas: 100% (25724/25724), done.
+    From https://github.com/pivx-crypto/pivx
     ... (new tags, new branch etc)
     --- Building for precise amd64 ---
     Stopping target if it is up
@@ -394,11 +396,11 @@ and inputs.
 
 For example:
 ```bash
-URL=https://github.com/crowning-/dash.git
+URL=https://github.com/crowning-/pivx.git
 COMMIT=b616fb8ef0d49a919b72b0388b091aaec5849b96
-./bin/gbuild --commit dash=${COMMIT} --url dash=${URL} ../dash/contrib/gitian-descriptors/gitian-linux.yml
-./bin/gbuild --commit dash=${COMMIT} --url dash=${URL} ../dash/contrib/gitian-descriptors/gitian-win.yml
-./bin/gbuild --commit dash=${COMMIT} --url dash=${URL} ../dash/contrib/gitian-descriptors/gitian-osx.yml
+./bin/gbuild --commit pivx=${COMMIT} --url pivx=${URL} ../pivx/contrib/gitian-descriptors/gitian-linux.yml
+./bin/gbuild --commit pivx=${COMMIT} --url pivx=${URL} ../pivx/contrib/gitian-descriptors/gitian-win.yml
+./bin/gbuild --commit pivx=${COMMIT} --url pivx=${URL} ../pivx/contrib/gitian-descriptors/gitian-osx.yml
 ```
 
 Building fully offline
@@ -464,9 +466,9 @@ When you execute `gsign` you will get an error from GPG, which can be ignored. C
 in `gitian.sigs` to your signing machine and do
 
 ```bash
-    gpg --detach-sign ${VERSION}-linux/${SIGNER}/dash-linux-build.assert
-    gpg --detach-sign ${VERSION}-win/${SIGNER}/dash-win-build.assert
-    gpg --detach-sign ${VERSION}-osx-unsigned/${SIGNER}/dash-osx-build.assert
+    gpg --detach-sign ${VERSION}-linux/${SIGNER}/pivx-build.assert
+    gpg --detach-sign ${VERSION}-win/${SIGNER}/pivx-build.assert
+    gpg --detach-sign ${VERSION}-osx/${SIGNER}/pivx-build.assert
 ```
 
 This will create the `.sig` files that can be committed together with the `.assert` files to assert your
@@ -476,6 +478,6 @@ Uploading signatures (not yet implemented)
 ---------------------
 
 In the future it will be possible to push your signatures (both the `.assert` and `.assert.sig` files) to the
-[dash/gitian.sigs](https://github.com/dashpay/gitian.sigs/) repository, or if that's not possible to create a pull
+[pivx/gitian.sigs](https://github.com/pivx-crypto/gitian.sigs/) repository, or if that's not possible to create a pull
 request.
 There will be an official announcement when this repository is online.

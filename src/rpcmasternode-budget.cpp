@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2016 The Dash Core developers
+// Copyright (c) 2014-2015 The Dash Developers
+// Copyright (c) 2015-2017 The PIVX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -36,15 +37,14 @@ UniValue mnbudget(const UniValue& params, bool fHelp)
                 "mnbudget \"command\"...\n"
                 "Manage proposals\n"
                 "\nAvailable commands:\n"
-                "  check              - Scan proposals and remove invalid from proposals list\n"
-                "  prepare            - Prepare proposal by signing and creating tx\n"
-                "  submit             - Submit proposal to network\n"
-                "  getproposalhash    - Get proposal hash(es) by proposal name\n"
-                "  getproposal        - Show proposal\n"
-                "  getvotes           - Show detailed votes list for proposal\n"
-                "  list               - List all proposals\n"
-                "  nextblock          - Get info about next superblock for budget system\n"
-                "  nextsuperblocksize - Get superblock size for a given blockheight\n"
+                "  prepare            - Prepare proposal for network by signing and creating tx\n"
+                "  submit             - Submit proposal for network\n"
+                "  vote-many          - Vote on a Pivx initiative\n"
+                "  vote-alias         - Vote on a Pivx initiative\n"
+                "  vote               - Vote on a Pivx initiative/budget\n"
+                "  getvotes           - Show current masternode budgets\n"
+                "  getinfo            - Show current masternode budgets\n"
+                "  show               - Show all budgets\n"
                 "  projection         - Show the projection of which proposals will be paid the next cycle\n"
                 "  vote               - Vote on a proposal by single masternode (using dash.conf setup)\n"
                 "  vote-many          - Vote on a proposal by all masternodes (using masternode.conf setup)\n"
@@ -85,8 +85,17 @@ UniValue mnbudget(const UniValue& params, bool fHelp)
         std::vector<CMasternodeConfig::CMasternodeEntry> mnEntries;
         mnEntries = masternodeConfig.getEntries();
 
-        std::string strProposalName = SanitizeString(params[1].get_str());
-        std::string strURL = SanitizeString(params[2].get_str());
+        if (params.size() != 7)
+            throw runtime_error("Correct usage is 'mnbudget prepare proposal-name url payment_count block_start pivx_address monthly_payment_pivx'");
+
+        std::string strProposalName = params[1].get_str();
+        if(strProposalName.size() > 20)
+            return "Invalid proposal name, limit of 20 characters.";
+
+        std::string strURL = params[2].get_str();
+        if(strURL.size() > 64)
+            return "Invalid url, limit of 64 characters.";
+
         int nPaymentCount = params[3].get_int();
         int nBlockStart = params[4].get_int();
 
@@ -98,9 +107,9 @@ UniValue mnbudget(const UniValue& params, bool fHelp)
 
         CBitcoinAddress address(params[5].get_str());
         if (!address.IsValid())
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Dash address");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Pivx address");
 
-        // Parse Dash address
+        // Parse Pivx address
         CScript scriptPubKey = GetScriptForDestination(address.Get());
         CAmount nAmount = AmountFromValue(params[6]);
 
@@ -149,8 +158,20 @@ UniValue mnbudget(const UniValue& params, bool fHelp)
         std::vector<CMasternodeConfig::CMasternodeEntry> mnEntries;
         mnEntries = masternodeConfig.getEntries();
 
-        std::string strProposalName = SanitizeString(params[1].get_str());
-        std::string strURL = SanitizeString(params[2].get_str());
+        if (params.size() != 8)
+            throw runtime_error("Correct usage is 'mnbudget submit proposal-name url payment_count block_start pivx_address monthly_payment_pivx fee_tx'");
+
+        // Check these inputs the same way we check the vote commands:
+        // **********************************************************
+
+        std::string strProposalName = params[1].get_str();
+        if(strProposalName.size() > 20)
+            return "Invalid proposal name, limit of 20 characters.";
+
+        std::string strURL = params[2].get_str();
+        if(strURL.size() > 64)
+            return "Invalid url, limit of 64 characters.";
+
         int nPaymentCount = params[3].get_int();
         int nBlockStart = params[4].get_int();
 
@@ -162,9 +183,9 @@ UniValue mnbudget(const UniValue& params, bool fHelp)
 
         CBitcoinAddress address(params[5].get_str());
         if (!address.IsValid())
-            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Dash address");
+            throw JSONRPCError(RPC_INVALID_ADDRESS_OR_KEY, "Invalid Pivx address");
 
-        // Parse Dash address
+        // Parse Pivx address
         CScript scriptPubKey = GetScriptForDestination(address.Get());
         CAmount nAmount = AmountFromValue(params[6]);
         uint256 hash = ParseHashV(params[7], "Proposal hash");
@@ -228,7 +249,7 @@ UniValue mnbudget(const UniValue& params, bool fHelp)
 
             UniValue statusObj(UniValue::VOBJ);
 
-            if(!darkSendSigner.SetKey(mne.getPrivKey(), errorMessage, keyMasternode, pubKeyMasternode)){
+            if(!obfuScationSigner.SetKey(mne.getPrivKey(), errorMessage, keyMasternode, pubKeyMasternode)){
                 failed++;
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("errorMessage", "Masternode signing error, could not set key correctly: " + errorMessage));
@@ -385,8 +406,8 @@ UniValue mnbudget(const UniValue& params, bool fHelp)
         CKey keyMasternode;
         std::string errorMessage;
 
-        if(!darkSendSigner.SetKey(strMasterNodePrivKey, errorMessage, keyMasternode, pubKeyMasternode))
-            throw JSONRPCError(RPC_INTERNAL_ERROR, "Error upon calling SetKey");
+        if(!obfuScationSigner.SetKey(strMasterNodePrivKey, errorMessage, keyMasternode, pubKeyMasternode))
+            return "Error upon calling SetKey";
 
         CMasternode* pmn = mnodeman.Find(activeMasternode.vin);
         if(pmn == NULL)
@@ -743,7 +764,7 @@ UniValue mnfinalbudget(const UniValue& params, bool fHelp)
 
             UniValue statusObj(UniValue::VOBJ);
 
-            if(!darkSendSigner.SetKey(mne.getPrivKey(), errorMessage, keyMasternode, pubKeyMasternode)){
+            if(!obfuScationSigner.SetKey(mne.getPrivKey(), errorMessage, keyMasternode, pubKeyMasternode)){
                 failed++;
                 statusObj.push_back(Pair("result", "failed"));
                 statusObj.push_back(Pair("errorMessage", "Masternode signing error, could not set key correctly: " + errorMessage));

@@ -59,6 +59,10 @@
        <property name="text">
         <string>&amp;New</string>
        </property>
+       <property name="icon">
+        <iconset resource="../pivx.qrc">
+         <normaloff>:/icons/add</normaloff>:/icons/add</iconset>
+       </property>
        <property name="autoDefault">
         <bool>false</bool>
        </property>
@@ -72,6 +76,10 @@
        <property name="text">
         <string>&amp;Copy</string>
        </property>
+       <property name="icon">
+        <iconset resource="../pivx.qrc">
+         <normaloff>:/icons/editcopy</normaloff>:/icons/editcopy</iconset>
+       </property>
        <property name="autoDefault">
         <bool>false</bool>
        </property>
@@ -84,6 +92,10 @@
        </property>
        <property name="text">
         <string>&amp;Delete</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../pivx.qrc">
+         <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
        </property>
        <property name="autoDefault">
         <bool>false</bool>
@@ -111,6 +123,10 @@
        <property name="text">
         <string>&amp;Export</string>
        </property>
+       <property name="icon">
+        <iconset resource="../pivx.qrc">
+         <normaloff>:/icons/export</normaloff>:/icons/export</iconset>
+       </property>
        <property name="autoDefault">
         <bool>false</bool>
        </property>
@@ -137,7 +153,7 @@
   </layout>
  </widget>
  <resources>
-  <include location="../dash.qrc"/>
+  <include location="../pivx.qrc"/>
  </resources>
  <connections/>
 </ui>

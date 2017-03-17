@@ -44,7 +44,7 @@ public:
 
     static QList<CAmount> payAmounts;
     static CCoinControl *coinControl;
-    static bool fSubtractFeeFromAmount;
+    static int nSplitBlockDummy;
 
 private:
     Ui::CoinControlDialog *ui;
@@ -70,7 +70,7 @@ private:
         COLUMN_AMOUNT,
         COLUMN_LABEL,
         COLUMN_ADDRESS,
-        COLUMN_DARKSEND_ROUNDS,
+        COLUMN_OBFUSCATION_ROUNDS,
         COLUMN_DATE,
         COLUMN_CONFIRMATIONS,
         COLUMN_PRIORITY,

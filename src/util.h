@@ -1,6 +1,7 @@
 // Copyright (c) 2009-2010 Satoshi Nakamoto
-// Copyright (c) 2009-2015 The Bitcoin Core developers
-// Copyright (c) 2014-2016 The Dash Core developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2017 The PIVX developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -12,7 +13,7 @@
 #define BITCOIN_UTIL_H
 
 #if defined(HAVE_CONFIG_H)
-#include "config/dash-config.h"
+#include "config/pivx-config.h"
 #endif
 
 #include "compat.h"
@@ -30,22 +31,21 @@
 #include <boost/signals2/signal.hpp>
 #include <boost/thread/exceptions.hpp>
 
-//Dash only features
+//PIVX only features
 
 extern bool fMasterNode;
 extern bool fLiteMode;
-extern bool fEnableInstantX;
-extern int nInstantXDepth;
-extern int nDarksendRounds;
-extern int nAnonymizeDashAmount;
+extern bool fEnableSwiftTX;
+extern int nSwiftTXDepth;
+extern int nObfuscationRounds;
+extern int nAnonymizePivxAmount;
 extern int nLiquidityProvider;
-extern bool fEnableDarksend;
-extern bool fDarksendMultiSession;
+extern bool fEnableObfuscation;
 extern int64_t enforceMasternodePaymentsTime;
 extern std::string strMasterNodeAddr;
 extern int keysLoaded;
 extern bool fSucessfullyLoaded;
-extern std::vector<CAmount> darkSendDenominations;
+extern std::vector<int64_t> obfuScationDenominations;
 extern std::string strBudgetMode;
 
 static const bool DEFAULT_LOGTIMEMICROS = false;
@@ -230,25 +230,40 @@ std::string HelpMessageGroup(const std::string& message);
  * @param message Option description (e.g. "Username for JSON-RPC connections")
  * @return the formatted string
  */
-std::string HelpMessageOpt(const std::string& option, const std::string& message);
-
-/**
- * Return the number of physical cores available on the current system.
- * @note This does not count virtual cores, such as those provided by HyperThreading
- * when boost is newer than 1.56.
- */
-int GetNumCores();
-
-void SetThreadPriority(int nPriority);
-void RenameThread(const char* name);
-std::string GetThreadName();
+template <typename Callable> void LoopForever(const char* name,  Callable func, int64_t msecs)
+{
+    std::string s = strprintf("pivx-%s", name);
+    RenameThread(s.c_str());
+    LogPrintf("%s thread start\n", name);
+    try
+    {
+        while (1)
+        {
+            MilliSleep(msecs);
+            func();
+        }
+    }
+    catch (boost::thread_interrupted)
+    {
+        LogPrintf("%s thread stop\n", name);
+        throw;
+    }
+    catch (std::exception& e) {
+        PrintExceptionContinue(&e, name);
+        throw;
+    }
+    catch (...) {
+        PrintExceptionContinue(NULL, name);
+        throw;
+    }
+}
 
 /**
  * .. and a wrapper that just calls func once
  */
 template <typename Callable> void TraceThread(const char* name,  Callable func)
 {
-    std::string s = strprintf("dash-%s", name);
+    std::string s = strprintf("pivx-%s", name);
     RenameThread(s.c_str());
     try
     {

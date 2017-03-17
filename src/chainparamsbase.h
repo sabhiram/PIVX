@@ -9,16 +9,21 @@
 #include <vector>
 
 /**
- * CBaseChainParams defines the base parameters (shared between dash-cli and dashd)
- * of a given instance of the Dash system.
+ * CBaseChainParams defines the base parameters (shared between pivx-cli and pivxd)
+ * of a given instance of the Pivx system.
  */
 class CBaseChainParams
 {
 public:
-    /** BIP70 chain name strings (main, test or regtest) */
-    static const std::string MAIN;
-    static const std::string TESTNET;
-    static const std::string REGTEST;
+
+    enum Network {
+        MAIN,
+        TESTNET,
+        REGTEST,
+        UNITTEST,
+
+        MAX_NETWORK_TYPES
+    };
 
     const std::string& DataDir() const { return strDataDir; }
     int RPCPort() const { return nRPCPort; }

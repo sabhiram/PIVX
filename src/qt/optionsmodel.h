@@ -46,8 +46,9 @@ public:
         ThreadsScriptVerif,     // int
         DatabaseCache,          // int
         SpendZeroConfChange,    // bool
-        DarksendRounds,         // int
-        AnonymizeDashAmount,    // int
+        ObfuscationRounds,    // int
+        AnonymizePivxAmount, //int
+        ShowMasternodesTab,     // bool
         Listen,                 // bool
         OptionIDRowCount,
     };
@@ -91,8 +92,8 @@ private:
 
 Q_SIGNALS:
     void displayUnitChanged(int unit);
-    void darksendRoundsChanged();
-    void anonymizeDashAmountChanged();
+    void obfuscationRoundsChanged(int);
+    void anonymizePivxAmountChanged(int);
     void coinControlFeaturesChanged(bool);
 };
 

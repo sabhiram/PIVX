@@ -1,18 +1,17 @@
 Translations
 ============
 
-The Dash-Core project has been designed to support multiple localisations. This makes adding new phrases, and completely new languages easily achievable. For managing all application translations, Dash Core makes use of the Transifex online translation management tool.
+The PIVX Core GUI can be easily translated into other languages. Here's how we
+handle those translations.
 
 ### Helping to translate (using Transifex)
 Transifex is setup to monitor the Github repo for updates, and when code containing new translations is found, Transifex will process any changes. It may take several hours after a pull-request has been merged, to appear in the Transifex web interface.
 
-Multiple language support is critical in assisting Dash’s global adoption, and growth. One of Dash’s greatest strengths is cross-boarder money transfers, any help making that easier is greatly appreciated.
+### pivx-qt.pro
 
 See the [Transifex Dash project](https://www.transifex.com/projects/p/dash/) to assist in translations. You should also join the translation mailing list for announcements - see details below.
 
-### Writing code with translations
-We use automated scripts to help extract translations in both Qt, and non-Qt source files. It is rarely necessary to manually edit the files in `src/qt/locale/`. The translation source files must adhere to the following format:
-`dash_xx_YY.ts or dash_xx.ts`
+### src/qt/pivx.qrc
 
 `src/qt/locale/dash_en.ts` is treated in a special way. It is used as the source for all other translations. Whenever a string in the source code is changed, this file must be updated to reflect those changes. A custom script is used to extract strings from the non-Qt parts. This script makes use of `gettext`, so make sure that utility is installed (ie, `apt-get install gettext` on Ubuntu/Debian). Once this has been updated, `lupdate` (included in the Qt SDK) is used to update `dash_en.ts`.
 
@@ -99,12 +98,71 @@ To create a new language template, you will need to edit the languages manifest 
 
 ```xml
 <qresource prefix="/translations">
-    <file alias="en">locale/dash_en.qm</file>
+    <file alias="en">locale/pivx_en.qm</file>
     ...
 </qresource>
 ```
 
 **Note:** that the language translation file **must end in `.qm`** (the compiled extension), and not `.ts`.
 
-### Questions and general assistance
-Check official forum at [https://dashtalk.org/forums/dash-worldwide-collaboration.88/](https://dashtalk.org/forums/dash-worldwide-collaboration.88/).
+This directory contains all translations. Filenames must adhere to this format:
+
+    pivx_xx_YY.ts or pivx_xx.ts
+
+#### pivx_en.ts (Source file)
+
+`src/qt/locale/pivx_en.ts` is treated in a special way. It is used as the
+source for all other translations. Whenever a string in the code is changed
+this file must be updated to reflect those changes. A custom script is used
+to extract strings from the non-Qt parts. This script makes use of `gettext`,
+so make sure that utility is installed (ie, `apt-get install gettext` on
+Ubuntu/Debian). Once this has been updated, lupdate (included in the Qt SDK)
+is used to update pivx_en.ts. This process has been automated, from src/,
+simply run:
+    make translate
+
+##### Handling of plurals in the source file
+
+When new plurals are added to the source file, it's important to do the following steps:
+
+1. Open pivx_en.ts in Qt Linguist (also included in the Qt SDK)
+2. Search for `%n`, which will take you to the parts in the translation that use plurals
+3. Look for empty `English Translation (Singular)` and `English Translation (Plural)` fields
+4. Add the appropriate strings for the singular and plural form of the base string
+5. Mark the item as done (via the green arrow symbol in the toolbar)
+6. Repeat from step 2. until all singular and plural forms are in the source file
+7. Save the source file
+
+##### Creating the pull-request
+
+An updated source file should be merged to github and Transifex will pick it
+up from there (can take some hours). Afterwards the new strings show up as "Remaining"
+in Transifex and can be translated.
+
+To create the pull-request you have to do:
+
+    git add src/qt/pivxstrings.cpp src/qt/locale/pivx_en.ts
+    git commit
+
+Syncing with Transifex
+----------------------
+
+We are using https://transifex.com as a frontend for translating the client.
+
+https://www.transifex.com/pivx-crypto/pivx-wallet-translations/
+
+The "Transifex client" (see: http://support.transifex.com/customer/portal/topics/440187-transifex-client/articles)
+is used to fetch new translations from Transifex. The configuration for this client (`.tx/config`)
+is part of the repository.
+
+Do not directly download translations one by one from the Transifex website, as we do a few
+postprocessing steps before committing the translations.
+
+### Fetching new translations
+
+1. `python contrib/devtools/update-translations.py`
+2. update `src/qt/pivx.qrc` manually or via
+   `ls src/qt/locale/*ts|xargs -n1 basename|sed 's/\(pivx_\(.*\)\).ts/        <file alias="\2">locale\/\1.qm<\/file>/'`
+3. update `src/Makefile.qt.include` manually or via
+   `ls src/qt/locale/*ts|xargs -n1 basename|sed 's/\(pivx_\(.*\)\).ts/  qt\/locale\/\1.ts \\/'`
+4. `git add` new translations from `src/qt/locale/`

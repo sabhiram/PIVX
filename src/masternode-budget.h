@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2016 The Dash Core developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2017 The PIVX developers
 
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -22,17 +23,15 @@ extern CCriticalSection cs_budget;
 class CBudgetManager;
 class CFinalizedBudgetBroadcast;
 class CFinalizedBudget;
-class CFinalizedBudgetVote;
 class CBudgetProposal;
 class CBudgetProposalBroadcast;
-class CBudgetVote;
 class CTxBudgetPayment;
 
 #define VOTE_ABSTAIN  0
 #define VOTE_YES      1
 #define VOTE_NO       2
 
-static const CAmount BUDGET_FEE_TX = (5*COIN);
+static const CAmount BUDGET_FEE_TX = (50*COIN);
 static const int64_t BUDGET_FEE_CONFIRMATIONS = 6;
 static const int64_t BUDGET_VOTE_UPDATE_MIN = 60*60;
 
@@ -44,6 +43,100 @@ void DumpBudgets();
 
 //Check the collateral transaction for the budget proposal/finalized budget
 bool IsBudgetCollateralValid(uint256 nTxCollateralHash, uint256 nExpectedHash, std::string& strError, int64_t& nTime, int& nConf);
+
+//
+// CBudgetVote - Allow a masternode node to vote and broadcast throughout the network
+//
+
+class CBudgetVote
+{
+public:
+    bool fValid; //if the vote is currently valid / counted
+    bool fSynced; //if we've sent this to our peers
+    CTxIn vin;
+    uint256 nProposalHash;
+    int nVote;
+    int64_t nTime;
+    std::vector<unsigned char> vchSig;
+
+    CBudgetVote();
+    CBudgetVote(CTxIn vin, uint256 nProposalHash, int nVoteIn);
+
+    bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode);
+    bool SignatureValid(bool fSignatureCheck);
+    void Relay();
+
+    std::string GetVoteString() {
+        std::string ret = "ABSTAIN";
+        if(nVote == VOTE_YES) ret = "YES";
+        if(nVote == VOTE_NO) ret = "NO";
+        return ret;
+    }
+
+    uint256 GetHash(){
+        CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+        ss << vin;
+        ss << nProposalHash;
+        ss << nVote;
+        ss << nTime;
+        return ss.GetHash();
+    }
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+        READWRITE(vin);
+        READWRITE(nProposalHash);
+        READWRITE(nVote);
+        READWRITE(nTime);
+        READWRITE(vchSig);
+    }
+
+
+
+};
+
+//
+// CFinalizedBudgetVote - Allow a masternode node to vote and broadcast throughout the network
+//
+
+class CFinalizedBudgetVote
+{
+public:
+    bool fValid; //if the vote is currently valid / counted
+    bool fSynced; //if we've sent this to our peers
+    CTxIn vin;
+    uint256 nBudgetHash;
+    int64_t nTime;
+    std::vector<unsigned char> vchSig;
+
+    CFinalizedBudgetVote();
+    CFinalizedBudgetVote(CTxIn vinIn, uint256 nBudgetHashIn);
+
+    bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode);
+    bool SignatureValid(bool fSignatureCheck);
+    void Relay();
+
+    uint256 GetHash(){
+        CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
+        ss << vin;
+        ss << nBudgetHash;
+        ss << nTime;
+        return ss.GetHash();
+    }
+
+    ADD_SERIALIZE_METHODS;
+
+    template <typename Stream, typename Operation>
+    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
+        READWRITE(vin);
+        READWRITE(nBudgetHash);
+        READWRITE(nTime);
+        READWRITE(vchSig);
+    }
+
+};
 
 /** Save Budget Manager (budget.dat)
  */
@@ -147,7 +240,7 @@ public:
     bool PropExists(uint256 nHash);
     bool IsTransactionValid(const CTransaction& txNew, int nBlockHeight);
     std::string GetRequiredPaymentsString(int nBlockHeight);
-    void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees);
+    void FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, bool fProofOfStake);
 
     void CheckOrphanVotes();
     void Clear(){
@@ -271,7 +364,7 @@ public:
 
     //check to see if we should vote on this
     void AutoCheck();
-    //total dash paid out by this budget
+    //total pivx paid out by this budget
     CAmount GetTotalPayout();
     //vote on this finalized budget as a masternode
     void SubmitVote();
@@ -431,8 +524,15 @@ public:
     bool HasMinimumRequiredSupport();
     std::pair<std::string, std::string> GetVotes();
 
-    bool IsValid(const CBlockIndex* pindex, std::string& strError, bool fCheckCollateral=true);
-    bool IsEstablished();
+    bool IsValid(std::string& strError, bool fCheckCollateral=true);
+
+    bool IsEstablished() {
+        //Proposals must be at least a day old to make it into a budget
+        if(Params().NetworkID() == CBaseChainParams::MAIN) return (nTime < GetTime() - (60*60*24));
+
+        //for testing purposes - 4 hours
+        return (nTime < GetTime() - (60*5));
+    }
 
     std::string GetName() {return strProposalName; }
     std::string GetURL() {return strURL; }

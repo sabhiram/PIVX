@@ -1,17 +1,16 @@
 ---
-name: "dash-dmg-signer"
+name: "pivx-dmg-signer"
 suites:
 - "trusty"
 architectures:
 - "amd64"
 packages:
 - "faketime"
-reference_datetime: "2016-01-01 00:00:00"
 remotes:
-- "url": "https://github.com/dashpay/dash-detached-sigs.git"
+- "url": "https://github.com/pivx-project/pivx-detached-sigs.git"
   "dir": "signature"
 files:
-- "dash-osx-unsigned.tar.gz"
+- "pivx-osx-unsigned.tar.gz"
 script: |
   WRAP_DIR=$HOME/wrapped
   mkdir -p ${WRAP_DIR}
@@ -28,10 +27,10 @@ script: |
     chmod +x ${WRAP_DIR}/${prog}
   done
 
-  UNSIGNED=dash-osx-unsigned.tar.gz
-  SIGNED=dash-osx-signed.dmg
+  UNSIGNED=pivx-osx-unsigned.tar.gz
+  SIGNED=pivx-osx-signed.dmg
 
   tar -xf ${UNSIGNED}
+  OSX_VOLNAME="$(cat osx_volname)"
   ./detached-sig-apply.sh ${UNSIGNED} signature/osx
-  ${WRAP_DIR}/genisoimage -no-cache-inodes -D -l -probe -V "Dash-Core" -no-pad -r -apple -o uncompressed.dmg signed-app
-  ${WRAP_DIR}/dmg dmg uncompressed.dmg ${OUTDIR}/${SIGNED}
+  ${WRAP_DIR}/genisoimage -no-cache-inodes -D -l -probe -V "Pivx-Qt" -no-pad -r -dir-mode 0755 -apple -o uncompressed.dmg signed-app

@@ -1,6 +1,7 @@
 // Copyright (c) 2010 Satoshi Nakamoto
-// Copyright (c) 2009-2015 The Bitcoin Core developers
-// Copyright (c) 2014-2016 The Dash Core developers
+// Copyright (c) 2009-2014 The Bitcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2017 The PIVX developers
 // Distributed under the MIT software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -243,11 +244,10 @@ UniValue stop(const UniValue& params, bool fHelp)
     if (fHelp || params.size() > 1)
         throw runtime_error(
             "stop\n"
-            "\nStop Dash server.");
-    // Event loop will exit after current HTTP requests have been handled, so
-    // this reply will get back to the client.
+            "\nStop PIVX server.");
+    // Shutdown will take long enough that the response should get back
     StartShutdown();
-    return "Dash server stopping";
+    return "PIVX server stopping";
 }
 
 /**
@@ -295,11 +295,12 @@ static const CRPCCommand vRPCCommands[] =
     { "blockchain",         "reconsiderblock",        &reconsiderblock,        true  },
 
     /* Mining */
-    { "mining",             "getblocktemplate",       &getblocktemplate,       true  },
-    { "mining",             "getmininginfo",          &getmininginfo,          true  },
-    { "mining",             "getnetworkhashps",       &getnetworkhashps,       true  },
-    { "mining",             "prioritisetransaction",  &prioritisetransaction,  true  },
-    { "mining",             "submitblock",            &submitblock,            true  },
+    { "mining",             "getblocktemplate",       &getblocktemplate,       true,      false,      false },
+    { "mining",             "getmininginfo",          &getmininginfo,          true,      false,      false },
+    { "mining",             "getnetworkhashps",       &getnetworkhashps,       true,      false,      false },
+    { "mining",             "prioritisetransaction",  &prioritisetransaction,  true,      false,      false },
+    { "mining",             "submitblock",            &submitblock,            true,      true,       false },
+    { "mining",             "reservebalance",         &reservebalance,         true,      true,       false },
 
     /* Coin generation */
     { "generating",         "getgenerate",            &getgenerate,            true  },
@@ -334,63 +335,65 @@ static const CRPCCommand vRPCCommands[] =
     { "hidden",             "resendwallettransactions", &resendwallettransactions, true},
 #endif
 
-    /* Dash features */
-    { "dash",               "masternode",             &masternode,             true  },
-    { "dash",               "masternodelist",         &masternodelist,         true  },
-    { "dash",               "masternodebroadcast",    &masternodebroadcast,    true  },
-    { "dash",               "mnbudget",               &mnbudget,               true  },
-    { "dash",               "mnbudgetvoteraw",        &mnbudgetvoteraw,        true  },
-    { "dash",               "mnfinalbudget",          &mnfinalbudget,          true  },
-    { "dash",               "mnsync",                 &mnsync,                 true  },
-    { "dash",               "spork",                  &spork,                  true  },
-    { "dash",               "getpoolinfo",            &getpoolinfo,            true  },
+    /* Pivx features */
+    { "pivx",               "masternode",             &masternode,             true,      true,       false },
+    { "pivx",               "masternodelist",         &masternodelist,         true,      true,       false },
+    { "pivx",               "mnbudget",               &mnbudget,               true,      true,       false },
+    { "pivx",               "mnbudgetvoteraw",        &mnbudgetvoteraw,        true,      true,       false },
+    { "pivx",               "mnfinalbudget",          &mnfinalbudget,          true,      true,       false },
+    { "pivx",               "mnsync",                 &mnsync,                 true,      true,       false },
+    { "pivx",               "spork",                  &spork,                  true,      true,       false },
 #ifdef ENABLE_WALLET
-    { "dash",               "darksend",               &darksend,               false },
+    { "pivx",               "obfuscation",               &obfuscation,               false,     false,      true  }, /* not threadSafe because of SendMoney */
 
     /* Wallet */
-    { "wallet",             "keepass",                &keepass,                true },
-    { "wallet",             "sendtoaddressix",        &sendtoaddressix,        false },
-    { "wallet",             "addmultisigaddress",     &addmultisigaddress,     true  },
-    { "wallet",             "backupwallet",           &backupwallet,           true  },
-    { "wallet",             "dumpprivkey",            &dumpprivkey,            true  },
-    { "wallet",             "dumpwallet",             &dumpwallet,             true  },
-    { "wallet",             "encryptwallet",          &encryptwallet,          true  },
-    { "wallet",             "getaccountaddress",      &getaccountaddress,      true  },
-    { "wallet",             "getaccount",             &getaccount,             true  },
-    { "wallet",             "getaddressesbyaccount",  &getaddressesbyaccount,  true  },
-    { "wallet",             "getbalance",             &getbalance,             false },
-    { "wallet",             "getnewaddress",          &getnewaddress,          true  },
-    { "wallet",             "getrawchangeaddress",    &getrawchangeaddress,    true  },
-    { "wallet",             "getreceivedbyaccount",   &getreceivedbyaccount,   false },
-    { "wallet",             "getreceivedbyaddress",   &getreceivedbyaddress,   false },
-    { "wallet",             "gettransaction",         &gettransaction,         false },
-    { "wallet",             "abandontransaction",     &abandontransaction,     false },
-    { "wallet",             "getunconfirmedbalance",  &getunconfirmedbalance,  false },
-    { "wallet",             "getwalletinfo",          &getwalletinfo,          false },
-    { "wallet",             "importprivkey",          &importprivkey,          true  },
-    { "wallet",             "importwallet",           &importwallet,           true  },
-    { "wallet",             "importaddress",          &importaddress,          true  },
-    { "wallet",             "importpubkey",           &importpubkey,           true  },
-    { "wallet",             "keypoolrefill",          &keypoolrefill,          true  },
-    { "wallet",             "listaccounts",           &listaccounts,           false },
-    { "wallet",             "listaddressgroupings",   &listaddressgroupings,   false },
-    { "wallet",             "listlockunspent",        &listlockunspent,        false },
-    { "wallet",             "listreceivedbyaccount",  &listreceivedbyaccount,  false },
-    { "wallet",             "listreceivedbyaddress",  &listreceivedbyaddress,  false },
-    { "wallet",             "listsinceblock",         &listsinceblock,         false },
-    { "wallet",             "listtransactions",       &listtransactions,       false },
-    { "wallet",             "listunspent",            &listunspent,            false },
-    { "wallet",             "lockunspent",            &lockunspent,            true  },
-    { "wallet",             "move",                   &movecmd,                false },
-    { "wallet",             "sendfrom",               &sendfrom,               false },
-    { "wallet",             "sendmany",               &sendmany,               false },
-    { "wallet",             "sendtoaddress",          &sendtoaddress,          false },
-    { "wallet",             "setaccount",             &setaccount,             true  },
-    { "wallet",             "settxfee",               &settxfee,               true  },
-    { "wallet",             "signmessage",            &signmessage,            true  },
-    { "wallet",             "walletlock",             &walletlock,             true  },
-    { "wallet",             "walletpassphrasechange", &walletpassphrasechange, true  },
-    { "wallet",             "walletpassphrase",       &walletpassphrase,       true  },
+    { "wallet",             "addmultisigaddress",     &addmultisigaddress,     true,      false,      true },
+    { "wallet",             "autocombinerewards",            &autocombinerewards,            false,     false,      true },
+    { "wallet",             "backupwallet",           &backupwallet,           true,      false,      true },
+    { "wallet",             "dumpprivkey",            &dumpprivkey,            true,      false,      true },
+    { "wallet",             "dumpwallet",             &dumpwallet,             true,      false,      true },
+    { "wallet",             "bip38encrypt",           &bip38encrypt,           true,      false,      true },
+    { "wallet",             "bip38decrypt",           &bip38decrypt,           true,      false,      true },
+    { "wallet",             "encryptwallet",          &encryptwallet,          true,      false,      true },
+    { "wallet",             "getaccountaddress",      &getaccountaddress,      true,      false,      true },
+    { "wallet",             "getaccount",             &getaccount,             true,      false,      true },
+    { "wallet",             "getaddressesbyaccount",  &getaddressesbyaccount,  true,      false,      true },
+    { "wallet",             "getbalance",             &getbalance,             false,     false,      true },
+    { "wallet",             "getnewaddress",          &getnewaddress,          true,      false,      true },
+    { "wallet",             "getrawchangeaddress",    &getrawchangeaddress,    true,      false,      true },
+    { "wallet",             "getreceivedbyaccount",   &getreceivedbyaccount,   false,     false,      true },
+    { "wallet",             "getreceivedbyaddress",   &getreceivedbyaddress,   false,     false,      true },
+    { "wallet",             "getstakesplitthreshold", &getstakesplitthreshold, false,     false,      true },
+    { "wallet",             "gettransaction",         &gettransaction,         false,     false,      true },
+    { "wallet",             "getunconfirmedbalance",  &getunconfirmedbalance,  false,     false,      true },
+    { "wallet",             "getwalletinfo",          &getwalletinfo,          false,     false,      true },
+    { "wallet",             "importprivkey",          &importprivkey,          true,      false,      true },
+    { "wallet",             "importwallet",           &importwallet,           true,      false,      true },
+    { "wallet",             "importaddress",          &importaddress,          true,      false,      true },
+    { "wallet",             "keypoolrefill",          &keypoolrefill,          true,      false,      true },
+    { "wallet",             "keepass",                &keepass,                false,     false,      true },
+    { "wallet",             "listaccounts",           &listaccounts,           false,     false,      true },
+    { "wallet",             "listaddressgroupings",   &listaddressgroupings,   false,     false,      true },
+    { "wallet",             "listlockunspent",        &listlockunspent,        false,     false,      true },
+    { "wallet",             "listreceivedbyaccount",  &listreceivedbyaccount,  false,     false,      true },
+    { "wallet",             "listreceivedbyaddress",  &listreceivedbyaddress,  false,     false,      true },
+    { "wallet",             "listsinceblock",         &listsinceblock,         false,     false,      true },
+    { "wallet",             "listtransactions",       &listtransactions,       false,     false,      true },
+    { "wallet",             "listunspent",            &listunspent,            false,     false,      true },
+    { "wallet",             "lockunspent",            &lockunspent,            true,      false,      true },
+    { "wallet",             "move",                   &movecmd,                false,     false,      true },
+    { "wallet",             "multisend",              &multisend,              false,     false,      true },
+    { "wallet",             "sendfrom",               &sendfrom,               false,     false,      true },
+    { "wallet",             "sendmany",               &sendmany,               false,     false,      true },
+    { "wallet",             "sendtoaddress",          &sendtoaddress,          false,     false,      true },
+    { "wallet",             "sendtoaddressix",        &sendtoaddressix,        false,     false,      true },
+    { "wallet",             "setaccount",             &setaccount,             true,      false,      true },
+    { "wallet",             "setstakesplitthreshold", &setstakesplitthreshold, false,     false,      true },
+    { "wallet",             "settxfee",               &settxfee,               true,      false,      true },
+    { "wallet",             "signmessage",            &signmessage,            true,      false,      true },
+    { "wallet",             "walletlock",             &walletlock,             true,      false,      true },
+    { "wallet",             "walletpassphrasechange", &walletpassphrasechange, true,      false,      true },
+    { "wallet",             "walletpassphrase",       &walletpassphrase,       true,      false,      true }, 
 #endif // ENABLE_WALLET
 };
 
@@ -416,7 +419,328 @@ const CRPCCommand *CRPCTable::operator[](const std::string &name) const
 
 bool StartRPC()
 {
-    LogPrint("rpc", "Starting RPC\n");
+    string strAuth = mapHeaders["authorization"];
+    if (strAuth.substr(0,6) != "Basic ")
+        return false;
+    string strUserPass64 = strAuth.substr(6); boost::trim(strUserPass64);
+    string strUserPass = DecodeBase64(strUserPass64);
+    return TimingResistantEqual(strUserPass, strRPCUserColonPass);
+}
+
+void ErrorReply(std::ostream& stream, const Object& objError, const Value& id)
+{
+    // Send error reply from json-rpc error object
+    int nStatus = HTTP_INTERNAL_SERVER_ERROR;
+    int code = find_value(objError, "code").get_int();
+    if (code == RPC_INVALID_REQUEST) nStatus = HTTP_BAD_REQUEST;
+    else if (code == RPC_METHOD_NOT_FOUND) nStatus = HTTP_NOT_FOUND;
+    string strReply = JSONRPCReply(Value::null, objError, id);
+    stream << HTTPReply(nStatus, strReply, false) << std::flush;
+}
+
+CNetAddr BoostAsioToCNetAddr(boost::asio::ip::address address)
+{
+    CNetAddr netaddr;
+    // Make sure that IPv4-compatible and IPv4-mapped IPv6 addresses are treated as IPv4 addresses
+    if (address.is_v6()
+     && (address.to_v6().is_v4_compatible()
+      || address.to_v6().is_v4_mapped()))
+        address = address.to_v6().to_v4();
+
+    if(address.is_v4())
+    {
+        boost::asio::ip::address_v4::bytes_type bytes = address.to_v4().to_bytes();
+        netaddr.SetRaw(NET_IPV4, &bytes[0]);
+    }
+    else
+    {
+        boost::asio::ip::address_v6::bytes_type bytes = address.to_v6().to_bytes();
+        netaddr.SetRaw(NET_IPV6, &bytes[0]);
+    }
+    return netaddr;
+}
+
+bool ClientAllowed(const boost::asio::ip::address& address)
+{
+    CNetAddr netaddr = BoostAsioToCNetAddr(address);
+    BOOST_FOREACH(const CSubNet &subnet, rpc_allow_subnets)
+        if (subnet.Match(netaddr))
+            return true;
+    return false;
+}
+
+template <typename Protocol>
+class AcceptedConnectionImpl : public AcceptedConnection
+{
+public:
+    AcceptedConnectionImpl(
+            asio::io_service& io_service,
+            ssl::context &context,
+            bool fUseSSL) :
+        sslStream(io_service, context),
+        _d(sslStream, fUseSSL),
+        _stream(_d)
+    {
+    }
+
+    virtual std::iostream& stream()
+    {
+        return _stream;
+    }
+
+    virtual std::string peer_address_to_string() const
+    {
+        return peer.address().to_string();
+    }
+
+    virtual void close()
+    {
+        _stream.close();
+    }
+
+    typename Protocol::endpoint peer;
+    asio::ssl::stream<typename Protocol::socket> sslStream;
+
+private:
+    SSLIOStreamDevice<Protocol> _d;
+    iostreams::stream< SSLIOStreamDevice<Protocol> > _stream;
+};
+
+void ServiceConnection(AcceptedConnection *conn);
+
+//! Forward declaration required for RPCListen
+template <typename Protocol, typename SocketAcceptorService>
+static void RPCAcceptHandler(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketAcceptorService> > acceptor,
+                             ssl::context& context,
+                             bool fUseSSL,
+                             boost::shared_ptr< AcceptedConnection > conn,
+                             const boost::system::error_code& error);
+
+/**
+ * Sets up I/O resources to accept and handle a new connection.
+ */
+template <typename Protocol, typename SocketAcceptorService>
+static void RPCListen(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketAcceptorService> > acceptor,
+                   ssl::context& context,
+                   const bool fUseSSL)
+{
+    // Accept connection
+    boost::shared_ptr< AcceptedConnectionImpl<Protocol> > conn(new AcceptedConnectionImpl<Protocol>(acceptor->get_io_service(), context, fUseSSL));
+
+    acceptor->async_accept(
+            conn->sslStream.lowest_layer(),
+            conn->peer,
+            boost::bind(&RPCAcceptHandler<Protocol, SocketAcceptorService>,
+                acceptor,
+                boost::ref(context),
+                fUseSSL,
+                conn,
+                _1));
+}
+
+
+/**
+ * Accept and handle incoming connection.
+ */
+template <typename Protocol, typename SocketAcceptorService>
+static void RPCAcceptHandler(boost::shared_ptr< basic_socket_acceptor<Protocol, SocketAcceptorService> > acceptor,
+                             ssl::context& context,
+                             const bool fUseSSL,
+                             boost::shared_ptr< AcceptedConnection > conn,
+                             const boost::system::error_code& error)
+{
+    // Immediately start accepting new connections, except when we're cancelled or our socket is closed.
+    if (error != asio::error::operation_aborted && acceptor->is_open())
+        RPCListen(acceptor, context, fUseSSL);
+
+    AcceptedConnectionImpl<ip::tcp>* tcp_conn = dynamic_cast< AcceptedConnectionImpl<ip::tcp>* >(conn.get());
+
+    if (error)
+    {
+        // TODO: Actually handle errors
+        LogPrintf("%s: Error: %s\n", __func__, error.message());
+    }
+    // Restrict callers by IP.  It is important to
+    // do this before starting client thread, to filter out
+    // certain DoS and misbehaving clients.
+    else if (tcp_conn && !ClientAllowed(tcp_conn->peer.address()))
+    {
+        // Only send a 403 if we're not using SSL to prevent a DoS during the SSL handshake.
+        if (!fUseSSL)
+            conn->stream() << HTTPError(HTTP_FORBIDDEN, false) << std::flush;
+        conn->close();
+    }
+    else {
+        ServiceConnection(conn.get());
+        conn->close();
+    }
+}
+
+static ip::tcp::endpoint ParseEndpoint(const std::string &strEndpoint, int defaultPort)
+{
+    std::string addr;
+    int port = defaultPort;
+    SplitHostPort(strEndpoint, port, addr);
+    return ip::tcp::endpoint(asio::ip::address::from_string(addr), port);
+}
+
+void StartRPCThreads()
+{
+    rpc_allow_subnets.clear();
+    rpc_allow_subnets.push_back(CSubNet("127.0.0.0/8")); // always allow IPv4 local subnet
+    rpc_allow_subnets.push_back(CSubNet("::1")); // always allow IPv6 localhost
+    if (mapMultiArgs.count("-rpcallowip"))
+    {
+        const vector<string>& vAllow = mapMultiArgs["-rpcallowip"];
+        BOOST_FOREACH(string strAllow, vAllow)
+        {
+            CSubNet subnet(strAllow);
+            if(!subnet.IsValid())
+            {
+                uiInterface.ThreadSafeMessageBox(
+                    strprintf("Invalid -rpcallowip subnet specification: %s. Valid are a single IP (e.g. 1.2.3.4), a network/netmask (e.g. 1.2.3.4/255.255.255.0) or a network/CIDR (e.g. 1.2.3.4/24).", strAllow),
+                    "", CClientUIInterface::MSG_ERROR);
+                StartShutdown();
+                return;
+            }
+            rpc_allow_subnets.push_back(subnet);
+        }
+    }
+    std::string strAllowed;
+    BOOST_FOREACH(const CSubNet &subnet, rpc_allow_subnets)
+        strAllowed += subnet.ToString() + " ";
+    LogPrint("rpc", "Allowing RPC connections from: %s\n", strAllowed);
+
+    strRPCUserColonPass = mapArgs["-rpcuser"] + ":" + mapArgs["-rpcpassword"];
+    if (((mapArgs["-rpcpassword"] == "") ||
+         (mapArgs["-rpcuser"] == mapArgs["-rpcpassword"])) && Params().RequireRPCPassword())
+    {
+        unsigned char rand_pwd[32];
+        GetRandBytes(rand_pwd, 32);
+        uiInterface.ThreadSafeMessageBox(strprintf(
+            _("To use pivxd, or the -server option to pivx-qt, you must set an rpcpassword in the configuration file:\n"
+              "%s\n"
+              "It is recommended you use the following random password:\n"
+              "rpcuser=pivxrpc\n"
+              "rpcpassword=%s\n"
+              "(you do not need to remember this password)\n"
+              "The username and password MUST NOT be the same.\n"
+              "If the file does not exist, create it with owner-readable-only file permissions.\n"
+              "It is also recommended to set alertnotify so you are notified of problems;\n"
+              "for example: alertnotify=echo %%s | mail -s \"PIVX Alert\" admin@foo.com\n"),
+                GetConfigFile().string(),
+                EncodeBase58(&rand_pwd[0],&rand_pwd[0]+32)),
+                "", CClientUIInterface::MSG_ERROR | CClientUIInterface::SECURE);
+        StartShutdown();
+        return;
+    }
+
+    assert(rpc_io_service == NULL);
+    rpc_io_service = new asio::io_service();
+    rpc_ssl_context = new ssl::context(*rpc_io_service, ssl::context::sslv23);
+
+    const bool fUseSSL = GetBoolArg("-rpcssl", false);
+
+    if (fUseSSL)
+    {
+        rpc_ssl_context->set_options(ssl::context::no_sslv2 | ssl::context::no_sslv3);
+
+        filesystem::path pathCertFile(GetArg("-rpcsslcertificatechainfile", "server.cert"));
+        if (!pathCertFile.is_complete()) pathCertFile = filesystem::path(GetDataDir()) / pathCertFile;
+        if (filesystem::exists(pathCertFile)) rpc_ssl_context->use_certificate_chain_file(pathCertFile.string());
+        else LogPrintf("ThreadRPCServer ERROR: missing server certificate file %s\n", pathCertFile.string());
+
+        filesystem::path pathPKFile(GetArg("-rpcsslprivatekeyfile", "server.pem"));
+        if (!pathPKFile.is_complete()) pathPKFile = filesystem::path(GetDataDir()) / pathPKFile;
+        if (filesystem::exists(pathPKFile)) rpc_ssl_context->use_private_key_file(pathPKFile.string(), ssl::context::pem);
+        else LogPrintf("ThreadRPCServer ERROR: missing server private key file %s\n", pathPKFile.string());
+
+        string strCiphers = GetArg("-rpcsslciphers", "TLSv1.2+HIGH:TLSv1+HIGH:!SSLv2:!aNULL:!eNULL:!3DES:@STRENGTH");
+        SSL_CTX_set_cipher_list(rpc_ssl_context->impl(), strCiphers.c_str());
+    }
+
+    std::vector<ip::tcp::endpoint> vEndpoints;
+    bool bBindAny = false;
+    int defaultPort = GetArg("-rpcport", BaseParams().RPCPort());
+    if (!mapArgs.count("-rpcallowip")) // Default to loopback if not allowing external IPs
+    {
+        vEndpoints.push_back(ip::tcp::endpoint(asio::ip::address_v6::loopback(), defaultPort));
+        vEndpoints.push_back(ip::tcp::endpoint(asio::ip::address_v4::loopback(), defaultPort));
+        if (mapArgs.count("-rpcbind"))
+        {
+            LogPrintf("WARNING: option -rpcbind was ignored because -rpcallowip was not specified, refusing to allow everyone to connect\n");
+        }
+    } else if (mapArgs.count("-rpcbind")) // Specific bind address
+    {
+        BOOST_FOREACH(const std::string &addr, mapMultiArgs["-rpcbind"])
+        {
+            try {
+                vEndpoints.push_back(ParseEndpoint(addr, defaultPort));
+            }
+            catch(const boost::system::system_error &)
+            {
+                uiInterface.ThreadSafeMessageBox(
+                    strprintf(_("Could not parse -rpcbind value %s as network address"), addr),
+                    "", CClientUIInterface::MSG_ERROR);
+                StartShutdown();
+                return;
+            }
+        }
+    } else { // No specific bind address specified, bind to any
+        vEndpoints.push_back(ip::tcp::endpoint(asio::ip::address_v6::any(), defaultPort));
+        vEndpoints.push_back(ip::tcp::endpoint(asio::ip::address_v4::any(), defaultPort));
+        // Prefer making the socket dual IPv6/IPv4 instead of binding
+        // to both addresses seperately.
+        bBindAny = true;
+    }
+
+    bool fListening = false;
+    std::string strerr;
+    std::string straddress;
+    BOOST_FOREACH(const ip::tcp::endpoint &endpoint, vEndpoints)
+    {
+        try {
+            asio::ip::address bindAddress = endpoint.address();
+            straddress = bindAddress.to_string();
+            LogPrintf("Binding RPC on address %s port %i (IPv4+IPv6 bind any: %i)\n", straddress, endpoint.port(), bBindAny);
+            boost::system::error_code v6_only_error;
+            boost::shared_ptr<ip::tcp::acceptor> acceptor(new ip::tcp::acceptor(*rpc_io_service));
+
+            acceptor->open(endpoint.protocol());
+            acceptor->set_option(boost::asio::ip::tcp::acceptor::reuse_address(true));
+
+            // Try making the socket dual IPv6/IPv4 when listening on the IPv6 "any" address
+            acceptor->set_option(boost::asio::ip::v6_only(
+                !bBindAny || bindAddress != asio::ip::address_v6::any()), v6_only_error);
+
+            acceptor->bind(endpoint);
+            acceptor->listen(socket_base::max_connections);
+
+            RPCListen(acceptor, *rpc_ssl_context, fUseSSL);
+
+            rpc_acceptors.push_back(acceptor);
+            fListening = true;
+            rpc_acceptors.push_back(acceptor);
+            // If dual IPv6/IPv4 bind successful, skip binding to IPv4 separately
+            if(bBindAny && bindAddress == asio::ip::address_v6::any() && !v6_only_error)
+                break;
+        }
+        catch(boost::system::system_error &e)
+        {
+            LogPrintf("ERROR: Binding RPC on address %s port %i failed: %s\n", straddress, endpoint.port(), e.what());
+            strerr = strprintf(_("An error occurred while setting up the RPC address %s port %u for listening: %s"), straddress, endpoint.port(), e.what());
+        }
+    }
+
+    if (!fListening) {
+        uiInterface.ThreadSafeMessageBox(strerr, "", CClientUIInterface::MSG_ERROR);
+        StartShutdown();
+        return;
+    }
+
+    rpc_worker_group = new boost::thread_group();
+    for (int i = 0; i < GetArg("-rpcthreads", 4); i++)
+        rpc_worker_group->create_thread(boost::bind(&asio::io_service::run, rpc_io_service));
     fRPCRunning = true;
     g_rpcSignals.Started();
     return true;
@@ -554,26 +878,14 @@ UniValue CRPCTable::execute(const std::string &strMethod, const UniValue &params
     g_rpcSignals.PostCommand(*pcmd);
 }
 
-std::vector<std::string> CRPCTable::listCommands() const
-{
-    std::vector<std::string> commandList;
-    typedef std::map<std::string, const CRPCCommand*> commandMap;
-
-    std::transform( mapCommands.begin(), mapCommands.end(),
-                   std::back_inserter(commandList),
-                   boost::bind(&commandMap::value_type::first,_1) );
-    return commandList;
-}
-
-std::string HelpExampleCli(const std::string& methodname, const std::string& args)
-{
-    return "> dash-cli " + methodname + " " + args + "\n";
+std::string HelpExampleCli(string methodname, string args){
+    return "> pivx-cli " + methodname + " " + args + "\n";
 }
 
 std::string HelpExampleRpc(const std::string& methodname, const std::string& args)
 {
     return "> curl --user myusername --data-binary '{\"jsonrpc\": \"1.0\", \"id\":\"curltest\", "
-        "\"method\": \"" + methodname + "\", \"params\": [" + args + "] }' -H 'content-type: text/plain;' http://127.0.0.1:9998/\n";
+        "\"method\": \"" + methodname + "\", \"params\": [" + args + "] }' -H 'content-type: text/plain;' http://127.0.0.1:51473/\n";
 }
 
 void RPCRegisterTimerInterface(RPCTimerInterface *iface)

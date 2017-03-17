@@ -1,6 +1,7 @@
-// Copyright (c) 2014-2015 The Bitcoin Core developers
-// Distributed under the MIT software license, see the accompanying
-// Copyright (c) 2014-2016 The Dash Core developers
+// Copyright (c) 2014 The Bitcoin Core developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2017 The PIVX developers
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "chainparams.h"
@@ -49,17 +50,15 @@ BOOST_AUTO_TEST_CASE(block_subsidy_test)
 
 BOOST_AUTO_TEST_CASE(subsidy_limit_test)
 {
-    // tested in dash_tests.cpp
-    //const Consensus::Params& consensusParams = Params(CBaseChainParams::MAIN).GetConsensus();
-    //CAmount nSum = 0;
-    //for (int nHeight = 0; nHeight < 14000000; nHeight += 1000) {
-    //    /* @TODO fix subsidity, add nBits */
-    //    CAmount nSubsidy = GetBlockSubsidy(0, nHeight, consensusParams);
-    //    BOOST_CHECK(nSubsidy <= 25 * COIN);
-    //    nSum += nSubsidy * 1000;
-    //    BOOST_CHECK(MoneyRange(nSum));
-    //}
-    //BOOST_CHECK_EQUAL(nSum, 1350824726649000ULL);
+    CAmount nSum = 0;
+    for (int nHeight = 0; nHeight < 14000000; nHeight += 1000) {
+        /* @TODO fix subsidity, add nBits */
+        CAmount nSubsidy = GetBlockValue(nHeight);
+        BOOST_CHECK(nSubsidy <= 50 * COIN);
+        nSum += nSubsidy * 1000;
+        BOOST_CHECK(MoneyRange(nSum));
+    }
+    BOOST_CHECK(nSum == 2099999997690000ULL);
 }
 
 bool ReturnFalse() { return false; }

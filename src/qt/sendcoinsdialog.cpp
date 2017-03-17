@@ -1,6 +1,7 @@
-// Copyright (c) 2011-2015 The Bitcoin Core developers
-// Copyright (c) 2014-2016 The Dash Core developers
-// Distributed under the MIT software license, see the accompanying
+// Copyright (c) 2011-2014 The Bitcoin developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2017 The PIVX developers
+// Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "sendcoinsdialog.h"
@@ -20,8 +21,8 @@
 #include "coincontrol.h"
 #include "main.h" // mempool and minRelayTxFee
 #include "ui_interface.h"
-#include "txmempool.h"
-#include "wallet/wallet.h"
+#include "utilmoneystr.h"
+#include "wallet.h"
 
 #include <QMessageBox>
 #include <QScrollBar>
@@ -62,31 +63,35 @@ SendCoinsDialog::SendCoinsDialog(const PlatformStyle *platformStyle, QWidget *pa
     connect(ui->checkBoxCoinControlChange, SIGNAL(stateChanged(int)), this, SLOT(coinControlChangeChecked(int)));
     connect(ui->lineEditCoinControlChange, SIGNAL(textEdited(const QString &)), this, SLOT(coinControlChangeEdited(const QString &)));
 
-    // Dash specific
-    QSettings settings;
-    if (!settings.contains("bUseDarkSend"))
-        settings.setValue("bUseDarkSend", false);
-    if (!settings.contains("bUseInstantX"))
-        settings.setValue("bUseInstantX", false);
+    // UTXO Splitter
+    connect(ui->splitBlockCheckBox, SIGNAL(stateChanged(int)), this, SLOT(splitBlockChecked(int)));
+    connect(ui->splitBlockLineEdit, SIGNAL(textChanged(const QString &)), this, SLOT(splitBlockLineEditChanged(const QString &)));
 
-    bool useDarkSend = settings.value("bUseDarkSend").toBool();
-    bool useInstantX = settings.value("bUseInstantX").toBool();
+    // PIVX specific
+    QSettings settings;
+    if (!settings.contains("bUseObfuScation"))
+        settings.setValue("bUseObfuScation", false);
+    if (!settings.contains("bUseSwiftTX"))
+        settings.setValue("bUseSwiftTX", false);
+        
+    bool useObfuScation = settings.value("bUseObfuScation").toBool();
+    bool useSwiftTX = settings.value("bUseSwiftTX").toBool();
     if(fLiteMode) {
-        ui->checkUseDarksend->setChecked(false);
-        ui->checkUseDarksend->setVisible(false);
-        ui->checkInstantX->setVisible(false);
-        CoinControlDialog::coinControl->useDarkSend = false;
-        CoinControlDialog::coinControl->useInstantX = false;
+        ui->checkUseObfuscation->setChecked(false);
+        ui->checkUseObfuscation->setVisible(false);
+        ui->checkSwiftTX->setVisible(false);
+        CoinControlDialog::coinControl->useObfuScation = false;
+        CoinControlDialog::coinControl->useSwiftTX = false;
     }
     else{
-        ui->checkUseDarksend->setChecked(useDarkSend);
-        ui->checkInstantX->setChecked(useInstantX);
-        CoinControlDialog::coinControl->useDarkSend = useDarkSend;
-        CoinControlDialog::coinControl->useInstantX = useInstantX;
+        ui->checkUseObfuscation->setChecked(useObfuScation);
+        ui->checkSwiftTX->setChecked(useSwiftTX);
+        CoinControlDialog::coinControl->useObfuScation = useObfuScation;
+        CoinControlDialog::coinControl->useSwiftTX = useSwiftTX;
     }
-
-    connect(ui->checkUseDarksend, SIGNAL(stateChanged ( int )), this, SLOT(updateDisplayUnit()));
-    connect(ui->checkInstantX, SIGNAL(stateChanged ( int )), this, SLOT(updateInstantX()));
+    
+    connect(ui->checkUseObfuscation, SIGNAL(stateChanged ( int )), this, SLOT(updateDisplayUnit()));
+    connect(ui->checkSwiftTX, SIGNAL(stateChanged ( int )), this, SLOT(updateSwiftTX()));
 
     // Coin Control: clipboard actions
     QAction *clipboardQuantityAction = new QAction(tr("Copy quantity"), this);
@@ -233,6 +238,19 @@ void SendCoinsDialog::on_sendButton_clicked()
     for(int i = 0; i < ui->entries->count(); ++i)
     {
         SendCoinsEntry *entry = qobject_cast<SendCoinsEntry*>(ui->entries->itemAt(i)->widget());
+
+        //UTXO splitter - address should be our own
+        CBitcoinAddress address = entry->getValue().address.toStdString();
+        if(!model->isMine(address) && ui->splitBlockCheckBox->checkState() == Qt::Checked)
+        {
+            CoinControlDialog::coinControl->fSplitBlock = false;
+            ui->splitBlockCheckBox->setCheckState(Qt::Unchecked);
+            QMessageBox::warning(this, tr("Send Coins"),
+                tr("The split block tool does not work when sending to outside addresses. Try again."),
+                QMessageBox::Ok, QMessageBox::Ok);
+            return;
+        }
+
         if(entry)
         {
             if(entry->validate())
@@ -251,30 +269,46 @@ void SendCoinsDialog::on_sendButton_clicked()
         return;
     }
 
+    //set split block in model
+    CoinControlDialog::coinControl->fSplitBlock = ui->splitBlockCheckBox->checkState() == Qt::Checked;
+
+    if (ui->entries->count() > 1 && ui->splitBlockCheckBox->checkState() == Qt::Checked)
+    {
+        CoinControlDialog::coinControl->fSplitBlock = false;
+        ui->splitBlockCheckBox->setCheckState(Qt::Unchecked);
+        QMessageBox::warning(this, tr("Send Coins"),
+            tr("The split block tool does not work with multiple addresses. Try again."),
+            QMessageBox::Ok, QMessageBox::Ok);
+        return;
+    }
+
+    if (CoinControlDialog::coinControl->fSplitBlock)
+        CoinControlDialog::coinControl->nSplitBlock = int(ui->splitBlockLineEdit->text().toInt());
+
     QString strFunds = tr("using") + " <b>" + tr("anonymous funds") + "</b>";
     QString strFee = "";
     recipients[0].inputType = ONLY_DENOMINATED;
 
-    if(ui->checkUseDarksend->isChecked()) {
+    if(ui->checkUseObfuscation->isChecked()) {
         recipients[0].inputType = ONLY_DENOMINATED;
         strFunds = tr("using") + " <b>" + tr("anonymous funds") + "</b>";
         QString strNearestAmount(
             BitcoinUnits::formatWithUnit(
                 model->getOptionsModel()->getDisplayUnit(), 0.1 * COIN));
         strFee = QString(tr(
-            "(darksend requires this amount to be rounded up to the nearest %1)."
+            "(obfuscation requires this amount to be rounded up to the nearest %1)."
         ).arg(strNearestAmount));
     } else {
         recipients[0].inputType = ALL_COINS;
         strFunds = tr("using") + " <b>" + tr("any available funds (not recommended)") + "</b>";
     }
 
-    if(ui->checkInstantX->isChecked()) {
-        recipients[0].useInstantX = true;
+    if(ui->checkSwiftTX->isChecked()) {
+        recipients[0].useSwiftTX = true;
         strFunds += " ";
-        strFunds += tr("and InstantX");
+        strFunds += tr("and SwiftTX");
     } else {
-        recipients[0].useInstantX = false;
+        recipients[0].useSwiftTX = false;
     }
 
 
@@ -354,6 +388,11 @@ void SendCoinsDialog::send(QList<SendCoinsRecipient> recipients, QString strFee,
         else // unauthenticated payment request
         {
             recipientElement = tr("%1 to %2").arg(amount, address);
+        }
+
+        if(fSplitBlock)
+        {
+            recipientElement.append(tr(" split into %1 outputs using the UTXO splitter.").arg(CoinControlDialog::coinControl->nSplitBlock));
         }
 
         formatted.append(recipientElement);
@@ -577,8 +616,8 @@ void SendCoinsDialog::setBalance(const CAmount& balance, const CAmount& unconfir
     {
 	    uint64_t bal = 0;
         QSettings settings;
-        settings.setValue("bUseDarkSend", ui->checkUseDarksend->isChecked());
-	    if(ui->checkUseDarksend->isChecked()) {
+        settings.setValue("bUseObfuScation", ui->checkUseObfuscation->isChecked());
+	    if(ui->checkUseObfuscation->isChecked()) {
 		    bal = anonymizedBalance;
 	    } else {
 		    bal = balance;
@@ -592,18 +631,18 @@ void SendCoinsDialog::updateDisplayUnit()
 {
     setBalance(model->getBalance(), model->getUnconfirmedBalance(), model->getImmatureBalance(), model->getAnonymizedBalance(),
                    model->getWatchBalance(), model->getWatchUnconfirmedBalance(), model->getWatchImmatureBalance());
-    CoinControlDialog::coinControl->useDarkSend = ui->checkUseDarksend->isChecked();
+    CoinControlDialog::coinControl->useObfuScation = ui->checkUseObfuscation->isChecked();
     coinControlUpdateLabels();
     ui->customFee->setDisplayUnit(model->getOptionsModel()->getDisplayUnit());
     updateMinFeeLabel();
     updateSmartFeeLabel();
 }
 
-void SendCoinsDialog::updateInstantX()
+void SendCoinsDialog::updateSwiftTX()
 {
     QSettings settings;
-    settings.setValue("bUseInstantX", ui->checkInstantX->isChecked());
-    CoinControlDialog::coinControl->useInstantX = ui->checkInstantX->isChecked();
+    settings.setValue("bUseSwiftTX", ui->checkSwiftTX->isChecked());
+    CoinControlDialog::coinControl->useSwiftTX = ui->checkSwiftTX->isChecked();
     coinControlUpdateLabels();
 }
 
@@ -771,6 +810,45 @@ void SendCoinsDialog::updateSmartFeeLabel()
     updateFeeMinimizedLabel();
 }
 
+// UTXO splitter
+void SendCoinsDialog::splitBlockChecked(int state)
+{
+    if (model)
+    {
+        CoinControlDialog::coinControl->fSplitBlock = (state == Qt::Checked);
+        fSplitBlock = (state == Qt::Checked);
+        ui->splitBlockLineEdit->setEnabled((state == Qt::Checked));
+        ui->labelBlockSizeText->setEnabled((state == Qt::Checked));
+        ui->labelBlockSize->setEnabled((state == Qt::Checked));
+        coinControlUpdateLabels();
+    }
+}
+
+//UTXO splitter
+void SendCoinsDialog::splitBlockLineEditChanged(const QString & text)
+{
+    //grab the amount in Coin Control AFter Fee field
+    QString qAfterFee = ui->labelCoinControlAfterFee->text().left(ui->labelCoinControlAfterFee->text().indexOf(" "))
+            .replace("~", "").simplified().replace(" ", "");
+
+    //convert to CAmount
+    CAmount nAfterFee;
+    ParseMoney(qAfterFee.toStdString().c_str(), nAfterFee);
+
+    //if greater than 0 then divide after fee by the amount of blocks
+    CAmount nSize = nAfterFee;
+    int nBlocks = text.toInt();
+    if (nAfterFee && nBlocks)
+        nSize = nAfterFee / nBlocks;
+
+    //assign to split block dummy, which is used to recalculate the fee amount more outputs
+    CoinControlDialog::nSplitBlockDummy = nBlocks;
+
+    //update labels
+    ui->labelBlockSize->setText(QString::fromStdString(FormatMoney(nSize)));
+    coinControlUpdateLabels();
+}
+
 // Coin Control: copy label "Quantity" to clipboard
 void SendCoinsDialog::coinControlClipboardQuantity()
 {
@@ -871,7 +949,7 @@ void SendCoinsDialog::coinControlChangeEdited(const QString& text)
         }
         else if (!addr.IsValid()) // Invalid address
         {
-            ui->labelCoinControlChangeLabel->setText(tr("Warning: Invalid Dash address"));
+            ui->labelCoinControlChangeLabel->setText(tr("Warning: Invalid PIVX address"));
         }
         else // Valid address
         {
@@ -934,7 +1012,7 @@ void SendCoinsDialog::coinControlUpdateLabels()
         }
     }
 
-    ui->checkUseDarksend->setChecked(CoinControlDialog::coinControl->useDarkSend);
+    ui->checkUseObfuscation->setChecked(CoinControlDialog::coinControl->useObfuScation);
 
     if (CoinControlDialog::coinControl->HasSelected())
     {

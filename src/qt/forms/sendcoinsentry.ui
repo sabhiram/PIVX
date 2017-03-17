@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>729</width>
-    <height>150</height>
+    <height>156</height>
    </rect>
   </property>
   <property name="focusPolicy">
@@ -57,7 +57,7 @@
       <item>
        <widget class="QValidatedLineEdit" name="payTo">
         <property name="toolTip">
-         <string>The Dash address to send the payment to</string>
+         <string>The PIVX address to send the payment to</string>
         </property>
        </widget>
       </item>
@@ -69,11 +69,9 @@
         <property name="text">
          <string/>
         </property>
-        <property name="iconSize">
-         <size>
-          <width>22</width>
-          <height>22</height>
-         </size>
+        <property name="icon">
+         <iconset resource="../pivx.qrc">
+          <normaloff>:/icons/address-book</normaloff>:/icons/address-book</iconset>
         </property>
         <property name="shortcut">
          <string>Alt+A</string>
@@ -88,11 +86,9 @@
         <property name="text">
          <string/>
         </property>
-        <property name="iconSize">
-         <size>
-          <width>22</width>
-          <height>22</height>
-         </size>
+        <property name="icon">
+         <iconset resource="../pivx.qrc">
+          <normaloff>:/icons/editpaste</normaloff>:/icons/editpaste</iconset>
         </property>
         <property name="shortcut">
          <string>Alt+P</string>
@@ -107,18 +103,16 @@
         <property name="text">
          <string/>
         </property>
-        <property name="iconSize">
-         <size>
-          <width>22</width>
-          <height>22</height>
-         </size>
+        <property name="icon">
+         <iconset resource="../pivx.qrc">
+          <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
         </property>
        </widget>
       </item>
      </layout>
     </item>
     <item row="1" column="0">
-     <widget class="QLabel" name="labellLabel">
+     <widget class="QLabel" name="labelLabel">
       <property name="text">
        <string>&amp;Label:</string>
       </property>
@@ -180,7 +174,7 @@
     <item row="3" column="1">
      <widget class="QLabel" name="messageTextLabel">
       <property name="toolTip">
-       <string>A message that was attached to the dash: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the Dash network.</string>
+       <string>A message that was attached to the PIVX: URI which will be stored with the transaction for your reference. Note: This message will not be sent over the PIVX network.</string>
       </property>
       <property name="textFormat">
        <enum>Qt::PlainText</enum>
@@ -650,6 +644,10 @@
         </property>
         <property name="text">
          <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="../pivx.qrc">
+          <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
         </property>
        </widget>
       </item>
@@ -1180,6 +1178,10 @@
         <property name="text">
          <string/>
         </property>
+        <property name="icon">
+         <iconset resource="../pivx.qrc">
+          <normaloff>:/icons/remove</normaloff>:/icons/remove</iconset>
+        </property>
        </widget>
       </item>
      </layout>
@@ -1249,7 +1251,7 @@
   <tabstop>deleteButton_s</tabstop>
  </tabstops>
  <resources>
-  <include location="../dash.qrc"/>
+  <include location="../pivx.qrc"/>
  </resources>
  <connections/>
 </ui>

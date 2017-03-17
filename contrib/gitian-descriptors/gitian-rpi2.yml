@@ -1,11 +1,12 @@
 ---
-name: "dash-raspberry-0.12"
+name: "pivx-rpi2-2.1.6"
 enable_cache: true
 suites:
-- "precise"
+- "trusty"
 architectures:
 - "amd64"
 packages:
+- "curl"
 - "g++-multilib"
 - "git-core"
 - "pkg-config"
@@ -15,10 +16,12 @@ packages:
 - "faketime"
 - "bsdmainutils"
 - "binutils-gold"
-reference_datetime: "2014-01-10 00:00:00"
+- "ca-certificates"
+- "python"
+reference_datetime: "2015-06-01 00:00:00"
 remotes:
-- "url": "https://github.com/dashpay/dash.git"
-  "dir": "dash"
+- "url": "https://github.com/pivx-project/pivx.git"
+  "dir": "pivx"
 files:
 - "raspberrypi-tools.tar.gz"
 script: |
@@ -67,7 +70,7 @@ script: |
   done
   export PATH=${WRAP_DIR}:${PATH}
 
-  cd dash
+  cd pivx
   BASEPREFIX=`pwd`/depends
   # Build dependencies for each host
   for i in $HOSTS; do
@@ -78,13 +81,13 @@ script: |
   ./autogen.sh
   ./configure --prefix=${BASEPREFIX}/`echo "${HOSTS}" | awk '{print $1;}'`
   make NO_QT=1 dist
-  SOURCEDIST=`echo dash-*.tar.gz`
+  SOURCEDIST=`echo pivx-*.tar.gz`
   DISTNAME=`echo ${SOURCEDIST} | sed 's/.tar.*//'`
   # Correct tar file order
   mkdir -p temp
   pushd temp
   tar xf ../$SOURCEDIST
-  find dash-* | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ../$SOURCEDIST
+  find pivx-* | sort | tar --no-recursion --mode='u+rw,go+r-w,a+X' --owner=0 --group=0 -c -T - | gzip -9n > ../$SOURCEDIST
   popd
 
   ORIGPATH="$PATH"
@@ -98,8 +101,8 @@ script: |
     tar --strip-components=1 -xf ../$SOURCEDIST
 
     ./configure --prefix=${BASEPREFIX}/${i} --bindir=${INSTALLPATH}/bin --includedir=${INSTALLPATH}/include --libdir=${INSTALLPATH}/lib --disable-ccache --disable-maintainer-mode --disable-dependency-tracking ${CONFIGFLAGS}
-    make ${MAKEOPTS} NO_QT=1
-    make NO_QT=1 install-strip
+    make ${MAKEOPTS}
+    make install-strip
     cd installed
     find . -name "lib*.la" -delete
     find . -name "lib*.a" -delete

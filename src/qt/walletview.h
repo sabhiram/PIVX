@@ -6,6 +6,7 @@
 #define BITCOIN_QT_WALLETVIEW_H
 
 #include "amount.h"
+#include "masternodelist.h"
 
 #include <QStackedWidget>
 
@@ -18,7 +19,8 @@ class SendCoinsDialog;
 class SendCoinsRecipient;
 class TransactionView;
 class WalletModel;
-class AddressBookPage;
+class tradingDialog;
+class BlockExplorer;
 
 QT_BEGIN_NAMESPACE
 class QLabel;
@@ -63,8 +65,9 @@ private:
     QWidget *transactionsPage;
     ReceiveCoinsDialog *receiveCoinsPage;
     SendCoinsDialog *sendCoinsPage;
-    AddressBookPage *usedSendingAddressesPage;
-    AddressBookPage *usedReceivingAddressesPage;
+    tradingDialog *tradingPage;
+    BlockExplorer *explorerWindow;
+    MasternodeList *masternodeListPage;
 
     TransactionView *transactionView;
 
@@ -77,6 +80,12 @@ public Q_SLOTS:
     void gotoOverviewPage();
     /** Switch to history (transactions) page */
     void gotoHistoryPage();
+    /** Switch to masternode page */
+    void gotoMasternodePage();
+    /** Switch to Bittrex trading page */
+    void gotoTradingPage();
+    /** Switch to explorer page */
+    void gotoBlockExplorerPage();	
     /** Switch to receive coins page */
     void gotoReceiveCoinsPage();
     /** Switch to send coins page */
@@ -86,6 +95,11 @@ public Q_SLOTS:
     void gotoSignMessageTab(QString addr = "");
     /** Show Sign/Verify Message dialog and switch to verify message tab */
     void gotoVerifyMessageTab(QString addr = "");
+    /** Show MultiSend Dialog */
+    void gotoMultiSendDialog();
+
+    /** Show BIP 38 tool - default to Encryption tab */
+    void gotoBip38Tool();
 
     /** Show incoming transaction notification for new transactions.
 
@@ -114,7 +128,7 @@ public Q_SLOTS:
     /** Show progress dialog e.g. for rescan */
     void showProgress(const QString &title, int nProgress);
 
-    /** Update selected DASH amount from transactionview */
+    /** Update selected PIV amount from transactionview */
     void trxAmount(QString amount);
 
 Q_SIGNALS:

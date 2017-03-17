@@ -1,4 +1,5 @@
-// Copyright (c) 2014-2016 The Dash Core developers
+// Copyright (c) 2014-2015 The Dash developers
+// Copyright (c) 2015-2017 The PIVX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
@@ -70,7 +71,7 @@ public:
     // Keep track of all pings I've seen
     map<uint256, CMasternodePing> mapSeenMasternodePing;
     
-    // keep track of dsq count to prevent masternodes from gaming darksend queue
+    // keep track of dsq count to prevent masternodes from gaming obfuscation queue
     int64_t nDsqCount;
 
     ADD_SERIALIZE_METHODS;
@@ -140,6 +141,9 @@ public:
     std::string ToString() const;
 
     void Remove(CTxIn vin);
+    
+    /// Update masternode list and maps using provided CMasternodeBroadcast
+    void UpdateMasternodeList(CMasternodeBroadcast mnb);
 
     int GetEstimatedMasternodes(int nBlock);
 

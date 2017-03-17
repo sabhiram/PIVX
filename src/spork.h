@@ -1,5 +1,6 @@
 
-// Copyright (c) 2009-2012 The Dash Core developers
+// Copyright (c) 2009-2012 The Dash developers
+// Copyright (c) 2015-2017 The PIVX developers
 // Distributed under the MIT/X11 software license, see the accompanying
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 #ifndef SPORK_H
@@ -8,8 +9,8 @@
 #include "base58.h"
 #include "hash.h"
 #include "protocol.h"
-#include "util.h"
-#include "utilstrencodings.h"
+#include "obfuscation.h"
+#include <boost/lexical_cast.hpp>
 
 using namespace std;
 using namespace boost;
@@ -21,8 +22,8 @@ using namespace boost;
 #define SPORK_START                                           10001
 #define SPORK_END                                             10012
 
-#define SPORK_2_INSTANTX                                      10001
-#define SPORK_3_INSTANTX_BLOCK_FILTERING                      10002
+#define SPORK_2_SWIFTTX                                       10001
+#define SPORK_3_SWIFTTX_BLOCK_FILTERING                       10002
 #define SPORK_5_MAX_VALUE                                     10004
 #define SPORK_7_MASTERNODE_SCANNING                           10006
 #define SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT                10007
@@ -32,9 +33,9 @@ using namespace boost;
 #define SPORK_12_RECONSIDER_BLOCKS                            10011
 #define SPORK_13_ENABLE_SUPERBLOCKS                           10012
 
-#define SPORK_2_INSTANTX_DEFAULT                              978307200   //2001-1-1
-#define SPORK_3_INSTANTX_BLOCK_FILTERING_DEFAULT              1424217600  //2015-2-18
-#define SPORK_5_MAX_VALUE_DEFAULT                             1000        //1000 DASH
+#define SPORK_2_SWIFTTX_DEFAULT                               978307200   //2001-1-1
+#define SPORK_3_SWIFTTX_BLOCK_FILTERING_DEFAULT               1424217600  //2015-2-18
+#define SPORK_5_MAX_VALUE_DEFAULT                             1000        //1000 PIV
 #define SPORK_7_MASTERNODE_SCANNING_DEFAULT                   978307200   //2001-1-1
 #define SPORK_8_MASTERNODE_PAYMENT_ENFORCEMENT_DEFAULT        4070908800   //OFF
 #define SPORK_9_MASTERNODE_BUDGET_ENFORCEMENT_DEFAULT         4070908800   //OFF
@@ -70,7 +71,7 @@ public:
     int64_t nTimeSigned;
 
     uint256 GetHash(){
-        uint256 n = HashX11(BEGIN(nSporkID), END(nTimeSigned));
+        uint256 n = HashQuark(BEGIN(nSporkID), END(nTimeSigned));
         return n;
     }
 

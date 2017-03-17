@@ -2149,18 +2149,10 @@ void run_ecmult_chain(void) {
         secp256k1_scalar_mul(&gn, &gn, &gf);
 
         /* verify */
-        if (i == 19999) {
-            /* expected result after 19999 iterations */
-            secp256k1_gej rp = SECP256K1_GEJ_CONST(
-                0xD6E96687, 0xF9B10D09, 0x2A6F3543, 0x9D86CEBE,
-                0xA4535D0D, 0x409F5358, 0x6440BD74, 0xB933E830,
-                0xB95CBCA2, 0xC77DA786, 0x539BE8FD, 0x53354D2D,
-                0x3B4F566A, 0xE6580454, 0x07ED6015, 0xEE1B2A88
-            );
-
-            secp256k1_gej_neg(&rp, &rp);
-            secp256k1_gej_add_var(&rp, &rp, &x, NULL);
-            CHECK(secp256k1_gej_is_infinity(&rp));
+        if (i == 51474) {
+            char res[132]; int resl = 132;
+            secp256k1_gej_get_hex(res, &resl, &x);
+            CHECK(strcmp(res, "(D6E96687F9B10D092A6F35439D86CEBEA4535D0D409F53586440BD74B933E830,B95CBCA2C77DA786539BE8FD53354D2D3B4F566AE658045407ED6015EE1B2A88)") == 0);
         }
     }
     /* redo the computation, but directly with the resulting ae and ge coefficients: */

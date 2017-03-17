@@ -8,9 +8,9 @@
 #include "paymentrequestplus.h"
 #include "walletmodeltransaction.h"
 
-#include "instantx.h"
-#include "wallet/wallet.h"
-#include "support/allocators/secure.h"
+#include "allocators.h" /* for SecureString */
+#include "swifttx.h"
+#include "wallet.h"
 
 #include <map>
 #include <vector>
@@ -51,7 +51,7 @@ public:
     QString address;
     QString label;
     AvailableCoinsType inputType;
-    bool useInstantX;
+    bool useSwiftTX;
     CAmount amount;
     // If from a payment request, this is used for storing the memo
     QString message;
@@ -145,7 +145,11 @@ public:
     CAmount getWatchUnconfirmedBalance() const;
     CAmount getWatchImmatureBalance() const;
     EncryptionStatus getEncryptionStatus() const;
-
+    CKey generateNewKey() const; //for temporary paper wallet key generation
+    bool setAddressBook(const CTxDestination& address, const string& strName, const string& strPurpose);
+    void encryptKey(const CKey key, const std::string &pwd, const std::string &slt, std::vector<unsigned char> &crypted);
+    void decryptKey(const std::vector<unsigned char> &crypted, const std::string &slt, const std::string &pwd, CKey &key);
+	
     // Check address for validity
     bool validateAddress(const QString &address);
 
@@ -193,10 +197,10 @@ public:
         void CopyFrom(const UnlockContext& rhs);
     };
 
-    UnlockContext requestUnlock(bool relock);
+    UnlockContext requestUnlock(bool relock=false);
 
     bool getPubKey(const CKeyID &address, CPubKey& vchPubKeyOut) const;
-    bool havePrivKey(const CKeyID &address) const;
+    bool isMine(CBitcoinAddress address);
     void getOutputs(const std::vector<COutPoint>& vOutpoints, std::vector<COutput>& vOutputs);
     bool isSpent(const COutPoint& outpoint) const;
     void listCoins(std::map<QString, std::vector<COutput> >& mapCoins) const;
@@ -233,7 +237,7 @@ private:
     EncryptionStatus cachedEncryptionStatus;
     int cachedNumBlocks;
     int cachedTxLocks;
-    int cachedDarksendRounds;
+    int cachedObfuscationRounds;
 
     QTimer *pollTimer;
 

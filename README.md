@@ -1,75 +1,65 @@
-Dash Core staging tree 0.12
-===============================
-
-https://www.dash.org
-
-
-What is Dash?
-----------------
-
-Dash is an experimental new digital currency that enables anonymous, instant
-payments to anyone, anywhere in the world. Dash uses peer-to-peer technology
-to operate with no central authority: managing transactions and issuing money
-are carried out collectively by the network. Dash Core is the name of open
-source software which enables the use of this currency.
-
-For more information, as well as an immediately useable, binary version of
-the Dash Core software, see https://www.dash.org/downloads.
-
-
-License
--------
-
-Dash Core is released under the terms of the MIT license. See [COPYING](COPYING) for more
-information or see https://opensource.org/licenses/MIT.
-
-Development Process
--------------------
-
-The `master` branch is meant to be stable. Development is normally done in separate branches.
-[Tags](https://github.com/bitcoin/bitcoin/tags) are created to indicate new official,
-stable release versions of Dash Core.
-
-The contribution workflow is described in [CONTRIBUTING.md](CONTRIBUTING.md).
-
-Testing
--------
-
-Testing and code review is the bottleneck for development; we get more pull
-requests than we can review and test on short notice. Please be patient and help out by testing
-other people's pull requests, and remember this is a security-critical project where any mistake might cost people
-lots of money.
-
-### Automated Testing
-
-Developers are strongly encouraged to write [unit tests](/doc/unit-tests.md) for new code, and to
-submit new unit tests for old code. Unit tests can be compiled and run
-(assuming they weren't disabled in configure) with: `make check`
-
-There are also [regression and integration tests](/qa) of the RPC interface, written
-in Python, that are run automatically on the build server.
-These tests can be run with: `qa/pull-tester/rpc-tests.py`
-
-The Travis CI system makes sure that every pull request is built for Windows
-and Linux, OSX, and that unit and sanity tests are automatically run.
-
-### Manual Quality Assurance (QA) Testing
-
-Changes should be tested by somebody other than the developer who wrote the
-code. This is especially important for large or high-risk changes. It is useful
-to add a test plan to the pull request description if testing the changes is
-not straightforward.
-
-Translations
-------------
-
-Changes to translations as well as new translations can be submitted to
-[Dash Core's Transifex page](https://www.transifex.com/projects/p/dash/).
-
-Translations are periodically pulled from Transifex and merged into the git repository. See the
-[translation process](doc/translation_process.md) for details on how this works.
-
-**Important**: We do not accept translation changes as GitHub pull requests because the next
-pull from Transifex would automatically overwrite them again.
-
-Translators should also follow the [forum](https://dashtalk.org/forums/dash-worldwide-collaboration.88/).
+<h2><strong>PIVX Repository (Version 2.1.6)</strong></h2>
+<p>More information at pivx.org Visit our ANN thread at bitcointalk.org/index.php?topic=1262920</p>
+<h3><strong>Coin specs:</strong></h3>
+<p><strong><span style="color: #800080;"><em>Algo:</em></span></strong></p>
+<ul>
+<li>Quark</li>
+</ul>
+<p><strong><span style="color: #800080;"><em>PoW Block Reward:</em></span></strong></p>
+<ul>
+<li>[block# 2-151200] 250 PIV [block# 151201-259200] 50 PIV</li>
+</ul>
+<p><strong><span style="color: #800080;"><em>PoS Block Reward:</em></span></strong></p>
+<ul>
+<li>[block# 259201-Infinite] Variable based on SeeSaw Reward Mechanism</li>
+</ul>
+<p><strong><span style="color: #800080;"><em>Block Time:</em></span></strong></p>
+<ul>
+<li>60 Seconds with Retargeting every Block</li>
+</ul>
+<p><strong><span style="color: #800080;"><em>Max Coin Supply:</em></span></strong></p>
+<ul>
+<li>PoW Phase: 43,199,500</li>
+</ul>
+<p><strong><span style="color: #800080;"><em>Max Coin Supply:</em></span></strong></p>
+<ul>
+<li>PoS Phase: Infinte</li>
+</ul>
+<p><strong><span style="color: #800080;"><em>PoW Phase 1:</em></span></strong></p>
+<ul>
+<li>[block# 1] 60k Premine for creation of 6 Masternodes for the functioning of the network.</li>
+</ul>
+<p><strong><span style="color: #800080;"><em>Pre-mine:</em></span></strong></p>
+<ul>
+<li>[block# 1] 60k Premine was burned at block 279917</li>
+</ul>
+<p><strong><span style="color: #800080;"><em>PoW Phase 2:</em></span></strong></p>
+<ul>
+<li>[block#&rsquo;s 2-259200] Approx 180 Days</li>
+</ul>
+<p><strong><span style="color: #800080;"><em>PoW Rewards Breakdown:</em></span></strong></p>
+<ul>
+<li>[block&rsquo;s &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;2-432000] 20% MN (50 PIV) &nbsp; &nbsp;/ 80% MINER (200 PIV)</li>
+<li>[block&rsquo;s &nbsp; 43201-151200] 20% MN (50 PIV) &nbsp; &nbsp;/ 70% MINER (200 PIV) &nbsp;/ 10% Available to the budget system (25 PIV)</li>
+<li>[block&rsquo;s 151201-259200] 45% MN (22.5 PIV) / 45% MINER (22.5 PIV) / 10% Available to the budget system ( &nbsp;5 PIV)</li>
+</ul>
+<p><strong><span style="color: #800080;"><em>PoS Rewards Breakdown:</em></span></strong></p>
+<ul>
+<li>PoS Phase 1: [blocks 259201-302399] 50 PIV (90% distributed to staker and masternode - 10% available to budget system)</li>
+<li>PoS Phase 2: [blocks 302400-345599] 45 PIV (90% distributed to staker and masternode - 10% available to budget system)</li>
+<li>PoS Phase 3: [blocks 345600-388799] 40 PIV (90% distributed to staker and masternode - 10% available to budget system)</li>
+<li>PoS Phase 4: [blocks 388800-431999] 35 PIV (90% distributed to staker and masternode - 10% available to budget system)</li>
+<li>PoS Phase 5: [blocks 432000-475199] 30 PIV (90% distributed to staker and masternode - 10% available to budget system)</li>
+<li>PoS Phase 6: [blocks 475200-518399] 25 PIV (90% distributed to staker and masternode - 10% available to budget system)</li>
+<li>PoS Phase 7: [blocks 518400-561599] 20 PIV (90% distributed to staker and masternode - 10% available to budget system)</li>
+<li>PoS Phase 8: [blocks 561600-604799] 15 PIV (90% distributed to staker and masternode - 10% available to budget system)</li>
+<li>PoS Phase 9: [blocks 604800-647999] 10 PIV (90% distributed to staker and masternode - 10% available to budget system)</li>
+<li>PoS Phase X: [blocks 648000-Infinite] &nbsp; 5 PIV (90% distributed to staker and masternode - 10% available to budget system)</li>
+</ul>
+<p>&nbsp;</p>
+<p>+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++</p>
+<p>&nbsp;</p>
+<p>PIVX is a cutting edge cryptocurrency, with many features not available in most other cryptocurrencies.</p>
+<p>Anonymized transactions using coin mixing technology, we call it <em>Obfuscation</em>.</p>
+<p>Fast transactions featuring guaranteed zero confirmation transactions, we call it <em>SwiftTX</em>.</p>
+<p>Decentralized blockchain voting providing for consensus based advancement of the current Masternode technology used to secure the network and provide the above features, each Masternode is secured with collateral of 10K PIV</p>
