@@ -251,7 +251,12 @@ public:
         Cleanup();
     }
 
-    //! mark a vout spent
+    bool Spend(const COutPoint &out);
+ 
+    //! mark an outpoint spent, and construct undo information
+    bool Spend(const COutPoint &out, CTxInUndo &undo);
+
+	  //! mark a vout spent
     bool Spend(uint32_t nPos);
 
     //! check whether a particular output is still available
@@ -367,19 +372,6 @@ public:
 };
 
 class CCoinsViewCache;
-
-/** Flags for nSequence and nLockTime locks */
-enum {
-    /* Interpret sequence numbers as relative lock-time constraints. */
-    LOCKTIME_VERIFY_SEQUENCE = (1 << 0),
-
-    /* Use GetMedianTimePast() instead of nTime for end point timestamp. */
-    LOCKTIME_MEDIAN_TIME_PAST = (1 << 1),
-};
-
-/** Used as the flags parameter to sequence and nLocktime checks in non-consensus code. */
-static const unsigned int STANDARD_LOCKTIME_VERIFY_FLAGS = LOCKTIME_VERIFY_SEQUENCE |
-                                                           LOCKTIME_MEDIAN_TIME_PAST;
 
 /** 
  * A reference to a mutable cache entry. Encapsulating it allows us to run

@@ -1637,7 +1637,7 @@ int64_t GetBlockValue(int nHeight)
 {
     int64_t nSubsidy = 0;
 
-    if(Params().NetworkID() == CBaseChainParams::TESTNET)
+    if(Params().NetworkIDString() == CBaseChainParams::TESTNET)
     {
         if(nHeight < 200 && nHeight > 0)
             return 250000 * COIN;
@@ -1699,7 +1699,7 @@ int64_t GetMasternodePayment(int nHeight, int64_t blockValue)
 {
     int64_t ret = 0;
 
-    if(Params().NetworkID() == CBaseChainParams::TESTNET)
+    if(Params().NetworkIDString() == CBaseChainParams::TESTNET)
     {
         if(nHeight < 200)
             return 0;
@@ -3544,7 +3544,7 @@ bool CheckBlock(const CBlock& block, CValidationState& state, bool fCheckPOW, bo
 
 bool CheckWork(const CBlock block, CBlockIndex * const pindexPrev)
 {
-    if(Params().NetworkID() == CBaseChainParams::TESTNET) 
+    if(Params().NetworkIDString() == CBaseChainParams::TESTNET) 
     {
         if (block.nBits != GetNextWorkRequired(pindexPrev, &block, block.IsProofOfStake()))
             return error("%s : incorrect proof of work at %d", __func__, pindexPrev->nHeight + 1);

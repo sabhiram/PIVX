@@ -8,7 +8,6 @@
 #include "key.h"
 #include "util.h"
 #include "base58.h"
-#include "darksend.h"
 #include "protocol.h"
 #include "spork.h"
 #include "main.h"

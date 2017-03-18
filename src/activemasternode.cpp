@@ -69,7 +69,7 @@ void CActiveMasternode::ManageStatus()
             service = CService(strMasterNodeAddr);
         }
 
-        if(Params().NetworkID() == CBaseChainParams::MAIN) {
+        if(Params().NetworkIDString() == CBaseChainParams::MAIN) {
             if(service.GetPort() != 51472) {
                 notCapableReason = strprintf("Invalid port: %u - only 51472 is supported on mainnet.", service.GetPort());
                 LogPrintf("CActiveMasternode::ManageStatus() - not capable: %s\n", notCapableReason);
@@ -273,7 +273,7 @@ bool CActiveMasternode::CreateBroadcast(std::string strService, std::string strK
     }
 
     CService service = CService(strService);
-    if(Params().NetworkID() == CBaseChainParams::MAIN) {
+    if(Params().NetworkIDString() == CBaseChainParams::MAIN) {
         if(service.GetPort() != 51472) {
             errorMessage = strprintf("Invalid port %u for masternode %s - only 51472 is supported on mainnet.", service.GetPort(), strService);
             LogPrintf("CActiveMasternode::Register() - %s\n", errorMessage);

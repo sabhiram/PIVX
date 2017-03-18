@@ -875,7 +875,7 @@ void CMasternodeMan::ProcessMessage(CNode* pfrom, std::string& strCommand, CData
             return;
         }
 
-        if(Params().NetworkID() == CBaseChainParams::MAIN){
+        if(Params().NetworkIDString() == CBaseChainParams::MAIN){
             if(addr.GetPort() != 51472) return;
         } else if(addr.GetPort() == 51472) return;
 

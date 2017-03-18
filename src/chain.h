@@ -220,13 +220,13 @@ public:
         nNonce         = block.nNonce;
 
         //Proof of Stake
-        bnChainTrust = 0;
+        bnChainTrust.SetNull();
         nMint = 0;
         nMoneySupply = 0;
         nFlags = 0;
         nStakeModifier = 0;
         nStakeModifierChecksum = 0;
-        hashProofOfStake = 0;
+        hashProofOfStake.SetNull();
         CBlock block2(block);
         if (block2.IsProofOfStake())
         {
@@ -397,8 +397,8 @@ public:
     uint256 hashNext;
 
     CDiskBlockIndex() {
-        hashPrev = 0;
-        hashNext = 0;
+        hashPrev = uint256();
+        hashNext = uint256();
     }
 
     explicit CDiskBlockIndex(const CBlockIndex* pindex) : CBlockIndex(*pindex) {
@@ -436,7 +436,7 @@ public:
         {
             const_cast<CDiskBlockIndex*>(this)->prevoutStake.SetNull();
             const_cast<CDiskBlockIndex*>(this)->nStakeTime = 0;
-            const_cast<CDiskBlockIndex*>(this)->hashProofOfStake = 0;
+            const_cast<CDiskBlockIndex*>(this)->hashProofOfStake.SetNull();
         }
 
         // block header

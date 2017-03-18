@@ -15,6 +15,7 @@
 #include "streams.h"
 #include "sync.h"
 #include "uint256.h"
+#include "util.h"
 
 #include <deque>
 #include <stdint.h>
@@ -403,6 +404,9 @@ public:
     std::set<uint256> setAskFor;
     std::multimap<int64_t, CInv> mapAskFor;
     std::vector<uint256> vBlockRequested;
+   // Used for headers announcements - unfiltered blocks to relay
+    // Also protected by cs_inventory
+    std::vector<uint256> vBlockHashesToAnnounce;
 
     // Ping time measurement:
     // The pong reply we're expecting, or 0 if no pong expected.

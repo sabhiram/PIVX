@@ -28,7 +28,7 @@ int nSubmittedFinalBudget;
 
 int GetBudgetPaymentCycleBlocks(){
     // Amount of blocks in a months period of time (using 1 minutes per) = (60*24*30)
-    if(Params().NetworkID() == CBaseChainParams::MAIN) return 43200;
+    if(Params().NetworkIDString() == CBaseChainParams::MAIN) return 43200;
     //for testing purposes
 
     return 144; //ten times per day
@@ -125,7 +125,7 @@ void CBudgetManager::SubmitFinalBudget()
     if(nSubmittedFinalBudget >= nBlockStart) return;
     if(nBlockStart - pindexPrev->nHeight > 1440*2) return; //submit final budget 2 days before payment
 
-    if(Params().NetworkID() == CBaseChainParams::TESTNET && nBlockStart - pindexPrev->nHeight > 50) return;
+    if(Params().NetworkIDString() == CBaseChainParams::TESTNET && nBlockStart - pindexPrev->nHeight > 50) return;
 
     std::vector<CBudgetProposal*> vBudgetProposals = budget.GetBudget();
     std::string strBudgetName = "main";
@@ -460,7 +460,7 @@ void CBudgetManager::FillBlockPayee(CMutableTransaction& txNew, CAmount nFees, b
 
     if(fProofOfStake) {
         if(nHighestCount > 0) {
-            if (Params().NetworkID() == CBaseChainParams::TESTNET)
+            if (Params().NetworkIDString() == CBaseChainParams::TESTNET)
             {
                 // Test for superblock-issue.
                 LogPrintf("CBudgetManager::FillBlockPayee - txNew.vout.size() = %d\n", txNew.vout.size());
@@ -847,15 +847,15 @@ CAmount CBudgetManager::GetTotalBudget(int nHeight)
     else {
         nSubsidy = 0 * COIN; 
     }
-    if(Params().NetworkID() == CBaseChainParams::TESTNET){
+    if(Params().NetworkIDString() == CBaseChainParams::TESTNET){
         nSubsidy = 500 * COIN; 
     }
 
     // Amount of blocks in a months period of time (using 1 minutes per) = (60*24*30)
-    if(Params().NetworkID() == CBaseChainParams::MAIN && nHeight <= 172800) {
+    if(Params().NetworkIDString() == CBaseChainParams::MAIN && nHeight <= 172800) {
         return 648000 * COIN;
     }
-    else if(Params().NetworkID() == CBaseChainParams::MAIN && nHeight > 172800) {
+    else if(Params().NetworkIDString() == CBaseChainParams::MAIN && nHeight > 172800) {
         return ((nSubsidy/100)*10)*1440*30;
     }
     //for testing purposes
@@ -1754,7 +1754,7 @@ void CFinalizedBudget::AutoCheck()
 
     //do this 1 in 4 blocks -- spread out the voting activity on mainnet
     // -- this function is only called every fourteenth block, so this is really 1 in 56 blocks
-    if(Params().NetworkID() == CBaseChainParams::MAIN && rand() % 4 != 0) {
+    if(Params().NetworkIDString() == CBaseChainParams::MAIN && rand() % 4 != 0) {
         LogPrintf("CFinalizedBudget::AutoCheck - waiting\n");
         return;
     }

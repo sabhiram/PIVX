@@ -446,47 +446,6 @@ public:
 };
 
 //
-// CFinalizedBudgetVote - Allow a masternode node to vote and broadcast throughout the network
-//
-
-class CFinalizedBudgetVote
-{
-public:
-    bool fValid; //if the vote is currently valid / counted
-    bool fSynced; //if we've sent this to our peers
-    CTxIn vin;
-    uint256 nBudgetHash;
-    int64_t nTime;
-    std::vector<unsigned char> vchSig;
-
-    CFinalizedBudgetVote();
-    CFinalizedBudgetVote(CTxIn vinIn, uint256 nBudgetHashIn);
-
-    bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode);
-    bool IsValid(bool fSignatureCheck);
-    void Relay();
-
-    uint256 GetHash(){
-        CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
-        ss << vin;
-        ss << nBudgetHash;
-        ss << nTime;
-        return ss.GetHash();
-    }
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
-        READWRITE(vin);
-        READWRITE(nBudgetHash);
-        READWRITE(nTime);
-        READWRITE(vchSig);
-    }
-
-};
-
-//
 // Budget Proposal : Contains the masternode votes for each budget
 //
 
@@ -528,7 +487,7 @@ public:
 
     bool IsEstablished() {
         //Proposals must be at least a day old to make it into a budget
-        if(Params().NetworkID() == CBaseChainParams::MAIN) return (nTime < GetTime() - (60*60*24));
+        if(Params().NetworkIDString() == CBaseChainParams::MAIN) return (nTime < GetTime() - (60*60*24));
 
         //for testing purposes - 4 hours
         return (nTime < GetTime() - (60*5));
@@ -639,59 +598,6 @@ public:
         READWRITE(*(CScriptBase*)(&address));
         READWRITE(nFeeTXHash);
     }
-};
-
-//
-// CBudgetVote - Allow a masternode node to vote and broadcast throughout the network
-//
-
-class CBudgetVote
-{
-public:
-    bool fValid; //if the vote is currently valid / counted
-    bool fSynced; //if we've sent this to our peers
-    CTxIn vin;
-    uint256 nProposalHash;
-    int nVote;
-    int64_t nTime;
-    std::vector<unsigned char> vchSig;
-
-    CBudgetVote();
-    CBudgetVote(CTxIn vin, uint256 nProposalHash, int nVoteIn);
-
-    bool Sign(CKey& keyMasternode, CPubKey& pubKeyMasternode);
-    bool IsValid(bool fSignatureCheck);
-    void Relay();
-
-    std::string GetVoteString() {
-        std::string ret = "ABSTAIN";
-        if(nVote == VOTE_YES) ret = "YES";
-        if(nVote == VOTE_NO) ret = "NO";
-        return ret;
-    }
-
-    uint256 GetHash(){
-        CHashWriter ss(SER_GETHASH, PROTOCOL_VERSION);
-        ss << vin;
-        ss << nProposalHash;
-        ss << nVote;
-        ss << nTime;
-        return ss.GetHash();
-    }
-
-    ADD_SERIALIZE_METHODS;
-
-    template <typename Stream, typename Operation>
-    inline void SerializationOp(Stream& s, Operation ser_action, int nType, int nVersion) {
-        READWRITE(vin);
-        READWRITE(nProposalHash);
-        READWRITE(nVote);
-        READWRITE(nTime);
-        READWRITE(vchSig);
-    }
-
-
-
 };
 
 #endif
