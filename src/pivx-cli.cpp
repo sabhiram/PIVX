@@ -18,8 +18,6 @@
 
 using namespace std;
 using namespace boost;
-using namespace boost::asio;
-using namespace json_spirit;
 
 std::string HelpMessageCli()
 {
@@ -93,10 +91,19 @@ static bool AppInitRPC(int argc, char* argv[])
         return false;
     }
     // Check for -testnet or -regtest parameter (BaseParams() calls are only valid after this clause)
+    try {
+        SelectBaseParams(ChainNameFromCommandLine());
+    } catch (const std::exception& e) {
+        fprintf(stderr, "Error: %s\n", e.what());
+        return EXIT_FAILURE;
+    }
+		/* XX42
+    // Check for -testnet or -regtest parameter (BaseParams() calls are only valid after this clause)
     if (!SelectBaseParamsFromCommandLine()) {
         fprintf(stderr, "Error: Invalid combination of -regtest and -testnet.\n");
         return false;
     }
+		*/
     return true;
 }
 

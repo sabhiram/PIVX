@@ -71,6 +71,11 @@ public:
     bool MiningRequiresPeers() const { return fMiningRequiresPeers; }
     /** Default value for -checkmempool and -checkblockindex argument */
     bool DefaultConsistencyChecks() const { return fDefaultConsistencyChecks; }
+	  /** Allow mining of a min-difficulty block */
+    bool AllowMinDifficultyBlocks() const { return fAllowMinDifficultyBlocks; }
+    /** Skip proof-of-work check: allow mining of any difficulty block */
+    bool SkipProofOfWorkCheck() const { return fSkipProofOfWorkCheck; }
+
     /** Policy: Filter transactions that do not match well-defined patterns */
     bool RequireStandard() const { return fRequireStandard; }
     int64_t TargetTimespan() const { return nTargetTimespan; }
@@ -117,9 +122,11 @@ protected:
     CBlock genesis;
     std::vector<SeedSpec6> vFixedSeeds;
     bool fMiningRequiresPeers;
+    bool fAllowMinDifficultyBlocks;
     bool fDefaultConsistencyChecks;
     bool fRequireStandard;
     bool fMineBlocksOnDemand;
+    bool fSkipProofOfWorkCheck;
     bool fTestnetToBeDeprecatedFieldRPC;
     CCheckpointData checkpointData;
     int nPoolMaxTransactions;
