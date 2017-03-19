@@ -4,7 +4,7 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "main.h"
-#include "db.h"
+// XX42 #include "db.h"
 #include "init.h"
 #include "activemasternode.h"
 #include "masternode-budget.h"

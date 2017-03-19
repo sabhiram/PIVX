@@ -193,7 +193,11 @@ obj/build.h: FORCE
 libbitcoin_util_a-clientversion.$(OBJEXT): obj/build.h
 
 # server: shared between pivxd and pivx-qt
-libbitcoin_server_a_CPPFLAGS = $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS)
+// XX42 libbitcoin_server_a_CPPFLAGS = $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS)
+// XX42libbitcoin_server_a_SOURCES = \
+
+libbitcoin_server_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(MINIUPNPC_CPPFLAGS) $(EVENT_CFLAGS) $(EVENT_PTHREADS_CFLAGS)
+libbitcoin_server_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_server_a_SOURCES = \
   addrman.cpp \
   alert.cpp \
@@ -204,10 +208,16 @@ libbitcoin_server_a_SOURCES = \
   httpserver.cpp \
   init.cpp \
   dbwrapper.cpp \
+  governance.cpp \
+  governance-classes.cpp \
+  governance-object.cpp \
+  governance-vote.cpp \
+  governance-votedb.cpp \
   main.cpp \
   merkleblock.cpp \
   miner.cpp \
   net.cpp \
+  netfulfilledman.cpp \
   noui.cpp \
   policy/fees.cpp \
   policy/policy.cpp \
@@ -215,7 +225,7 @@ libbitcoin_server_a_SOURCES = \
   rest.cpp \
   rpcblockchain.cpp \
   rpcmasternode.cpp \
-  rpcmasternode-budget.cpp \
+  rpcgovernance.cpp \
   rpcmining.cpp \
   rpcmisc.cpp \
   rpcnet.cpp \
@@ -227,6 +237,7 @@ libbitcoin_server_a_SOURCES = \
   txdb.cpp \
   txmempool.cpp \
   validationinterface.cpp \
+  versionbits.cpp \
   $(BITCOIN_CORE_H)
 
 if ENABLE_ZMQ
@@ -244,25 +255,22 @@ endif
 # wallet: shared between pivxd and pivx-qt, but only linked
 # when wallet enabled
 
-libbitcoin_wallet_a_CFLAGS = -fPIC
-libbitcoin_wallet_a_CPPFLAGS = $(BITCOIN_INCLUDES)
+// XX42 libbitcoin_wallet_a_CFLAGS = -fPIC
+// XX42 libbitcoin_wallet_a_CPPFLAGS = $(BITCOIN_INCLUDES)
+
+libbitcoin_wallet_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libbitcoin_wallet_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_wallet_a_SOURCES = \
   activemasternode.cpp \
   bip38.cpp \
   obfuscation.cpp \
   obfuscation-relay.cpp \
-  db.cpp \
-  crypter.cpp \
   swifttx.cpp \
   masternode.cpp \
-  masternode-budget.cpp \
   masternode-payments.cpp \
   masternode-sync.cpp \
   masternodeconfig.cpp \
   masternodeman.cpp \
-  rpcdump.cpp \
-  rpcwallet.cpp \
-  kernel.cpp \
   keepass.cpp \
   wallet/crypter.cpp \
   wallet/db.cpp \
@@ -282,14 +290,19 @@ crypto_libbitcoin_crypto_a_SOURCES = \
   crypto/hmac_sha256.cpp \
   crypto/hmac_sha256.h \
   crypto/hmac_sha512.cpp \
-  crypto/scrypt.cpp \
+  crypto/hmac_sha512.h \
   crypto/ripemd160.cpp \
   crypto/aes_helper.c \
   crypto/blake.c \
   crypto/bmw.c \
+  crypto/cubehash.c \
+  crypto/echo.c \
   crypto/groestl.c \
   crypto/jh.c \
   crypto/keccak.c \
+  crypto/luffa.c \
+  crypto/shavite.c \
+  crypto/simd.c \
   crypto/skein.c \
   crypto/ripemd160.h \
   crypto/sha1.cpp \
@@ -297,24 +310,25 @@ crypto_libbitcoin_crypto_a_SOURCES = \
   crypto/sha256.cpp \
   crypto/sha256.h \
   crypto/sha512.h \
-  crypto/hmac_sha256.h \
-  crypto/rfc6979_hmac_sha256.h \
-  crypto/hmac_sha512.h \
-  crypto/scrypt.h \
-  crypto/sha1.h \
-  crypto/ripemd160.h \
   crypto/sph_blake.h \
   crypto/sph_bmw.h \
+  crypto/sph_cubehash.h \
+  crypto/sph_echo.h \
   crypto/sph_groestl.h \
   crypto/sph_jh.h \
   crypto/sph_keccak.h \
+  crypto/sph_luffa.h \
+  crypto/sph_shavite.h \
+  crypto/sph_simd.h \
   crypto/sph_skein.h \
   crypto/sph_types.h \
   crypto/sha512.cpp \
   crypto/sha512.h
 
 # common: shared between pivxd, and pivx-qt and non-server tools
-libbitcoin_common_a_CPPFLAGS = $(BITCOIN_INCLUDES)
+// XX42 libbitcoin_common_a_CPPFLAGS = $(BITCOIN_INCLUDES)
+libbitcoin_common_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libbitcoin_common_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_common_a_SOURCES = \
   amount.cpp \
   arith_uint256.cpp \
@@ -371,7 +385,10 @@ libbitcoin_util_a_SOURCES += compat/glibc_compat.cpp
 endif
 
 # cli: shared between pivx-cli and pivx-qt
-libbitcoin_cli_a_CPPFLAGS = $(BITCOIN_INCLUDES)
+// XX42 libbitcoin_cli_a_CPPFLAGS = $(BITCOIN_INCLUDES)
+
+libbitcoin_cli_a_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+libbitcoin_cli_a_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
 libbitcoin_cli_a_SOURCES = \
   rpcclient.cpp \
   $(BITCOIN_CORE_H)
@@ -380,6 +397,15 @@ nodist_libbitcoin_util_a_SOURCES = $(srcdir)/obj/build.h
 #
 
 # bitcoind binary #
+pivxd_SOURCES = pivxd.cpp
+pivxd_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES)
+pivxd_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+pivxd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+
+if TARGET_WINDOWS
+pivxd_SOURCES += pivxd-res.rc
+endif
+
 pivxd_LDADD = \
   $(LIBBITCOIN_SERVER) \
   $(LIBBITCOIN_COMMON) \
@@ -397,51 +423,18 @@ endif
 if ENABLE_WALLET
 pivxd_LDADD += libbitcoin_wallet.a
 endif
-pivxd_SOURCES = pivxd.cpp
-#
 
-if TARGET_WINDOWS
-pivxd_SOURCES += pivxd-res.rc
-endif
-
-pivxd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS)
-pivxd_CPPFLAGS = $(BITCOIN_INCLUDES)
-pivxd_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
-
+pivxd_LDADD += $(BOOST_LIBS) $(BDB_LIBS) $(SSL_LIBS) $(CRYPTO_LIBS) $(MINIUPNPC_LIBS) $(EVENT_PTHREADS_LIBS) $(EVENT_LIBS)
 
 # pivx-cli binary #
-pivx_cli_LDADD = \
-  $(LIBBITCOIN_CLI) \
-  $(LIBBITCOIN_UTIL) \
-  $(BOOST_LIBS) \
-  $(SSL_LIBS) \
-  $(CRYPTO_LIBS)
-
-pivx_cli_SOURCES = \
-  pivx-cli.cpp
-
-pivx_cli_CPPFLAGS = $(BITCOIN_INCLUDES)
-#
-
-# pivx-tx binary #
-pivx_tx_LDADD = \
-  $(LIBBITCOIN_UNIVALUE) \
-  $(LIBBITCOIN_COMMON) \
-  $(LIBBITCOIN_UTIL) \
-  $(LIBBITCOIN_CRYPTO) \
-  $(LIBSECP256K1) \
-  $(BOOST_LIBS) \
-  $(CRYPTO_LIBS)
-
-pivx_tx_SOURCES = pivx-tx.cpp
-pivx_tx_CPPFLAGS = $(BITCOIN_INCLUDES)
-#
-pivx_tx_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
+pivx_cli_SOURCES = pivx-cli.cpp
+pivx_cli_CPPFLAGS = $(AM_CPPFLAGS) $(BITCOIN_INCLUDES) $(EVENT_CFLAGS)
+pivx_cli_CXXFLAGS = $(AM_CXXFLAGS) $(PIE_FLAGS)
+pivx_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 if TARGET_WINDOWS
 pivx_cli_SOURCES += pivx-cli-res.rc
 endif
-pivx_cli_LDFLAGS = $(RELDFLAGS) $(AM_LDFLAGS) $(LIBTOOL_APP_LDFLAGS)
 
 pivx_cli_LDADD = \
   $(LIBBITCOIN_CLI) \
@@ -475,7 +468,7 @@ if BUILD_BITCOIN_LIBS
 include_HEADERS = script/bitcoinconsensus.h
 libbitcoinconsensus_la_SOURCES = \
   crypto/hmac_sha512.cpp \
-  crypto/scrypt.cpp \
+  crypto/ripemd160.cpp \
   crypto/sha1.cpp \
   crypto/sha256.cpp \
   crypto/sha512.cpp \
@@ -548,6 +541,10 @@ endif
 %.pb.cc %.pb.h: %.proto
 	@test -f $(PROTOC)
 	$(AM_V_GEN) $(PROTOC) --cpp_out=$(@D) --proto_path=$(abspath $(<D) $<)
+
+if EMBEDDED_LEVELDB
+include Makefile.leveldb.include
+endif
 
 if ENABLE_TESTS
 include Makefile.test.include

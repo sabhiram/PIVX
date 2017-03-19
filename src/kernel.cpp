@@ -7,7 +7,7 @@
 #include <boost/lexical_cast.hpp>
 
 #include "kernel.h"
-#include "db.h"
+// XX42 #include "db.h"
 #include "script/interpreter.h"
 #include "timedata.h"
 #include "util.h"
