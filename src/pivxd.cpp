@@ -6,10 +6,12 @@
 // file COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 #include "clientversion.h"
+#include "chainparams.h"
 #include "rpcserver.h"
 #include "init.h"
 #include "main.h"
 #include "noui.h"
+#include "scheduler.h"
 #include "ui_interface.h"
 #include "util.h"
 #include "masternodeconfig.h"
@@ -59,6 +61,7 @@ void DetectShutdownThread(boost::thread_group* threadGroup)
 bool AppInit(int argc, char* argv[])
 {
     boost::thread_group threadGroup;
+    CScheduler scheduler;
     boost::thread* detectShutdownThread = NULL;
 
     bool fRet = false;
@@ -105,8 +108,16 @@ bool AppInit(int argc, char* argv[])
             return false;
         }
         // Check for -testnet or -regtest parameter (Params() calls are only valid after this clause)
+/* XX42
         if (!SelectParamsFromCommandLine()) {
             fprintf(stderr, "Error: Invalid combination of -regtest and -testnet.\n");
+            return false;
+        }
+*/
+        try {
+            SelectParams(ChainNameFromCommandLine());
+        } catch (const std::exception& e) {
+            fprintf(stderr, "Error: %s\n", e.what());
             return false;
         }
 
@@ -155,7 +166,8 @@ bool AppInit(int argc, char* argv[])
         SoftSetBoolArg("-server", true);
 
         detectShutdownThread = new boost::thread(boost::bind(&DetectShutdownThread, &threadGroup));
-        fRet = AppInit2(threadGroup);
+// XX42        fRet = AppInit2(threadGroup);
+        fRet = AppInit2(threadGroup, scheduler);
     }
     catch (std::exception& e) {
         PrintExceptionContinue(&e, "AppInit()");

@@ -10,7 +10,8 @@
 #include "net.h"
 #include "key.h"
 #include "init.h"
-#include "wallet.h"
+// XX42 #include "wallet.h"
+#include "wallet/wallet.h"
 #include "obfuscation.h"
 #include "masternode.h"
 
