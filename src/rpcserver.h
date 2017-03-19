@@ -258,6 +258,7 @@ extern UniValue sendrawtransaction(const UniValue& params, bool fHelp);
 extern UniValue gettxoutproof(const UniValue& params, bool fHelp);
 extern UniValue verifytxoutproof(const UniValue& params, bool fHelp);
 
+/* XX42
 extern json_spirit::Value getblockcount(const json_spirit::Array& params, bool fHelp); // in rpcblockchain.cpp
 extern json_spirit::Value getbestblockhash(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value getdifficulty(const json_spirit::Array& params, bool fHelp);
@@ -281,6 +282,7 @@ extern json_spirit::Value mnbudget(const json_spirit::Array& params, bool fHelp)
 extern json_spirit::Value mnbudgetvoteraw(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value mnfinalbudget(const json_spirit::Array& params, bool fHelp);
 extern json_spirit::Value mnsync(const json_spirit::Array& params, bool fHelp);
+*/ 
 
 extern UniValue getblockcount(const UniValue& params, bool fHelp); // in rpcblockchain.cpp
 extern UniValue getbestblockhash(const UniValue& params, bool fHelp);
