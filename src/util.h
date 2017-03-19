@@ -161,18 +161,6 @@ void OpenDebugLog();
 void ShrinkDebugFile();
 void runCommand(const std::string& strCommand);
 
-
-/**
- * Return the number of physical cores available on the current system.
- * @note This does not count virtual cores, such as those provided by HyperThreading
- * when boost is newer than 1.56.
- */
-int GetNumCores();
-
-void SetThreadPriority(int nPriority);
-void RenameThread(const char* name);
-std::string GetThreadName();
-
 inline bool IsSwitchChar(char c)
 {
 #ifdef WIN32
@@ -242,6 +230,19 @@ std::string HelpMessageGroup(const std::string& message);
  * @param message Option description (e.g. "Username for JSON-RPC connections")
  * @return the formatted string
  */
+std::string HelpMessageOpt(const std::string& option, const std::string& message);
+
+/**
+ * Return the number of physical cores available on the current system.
+ * @note This does not count virtual cores, such as those provided by HyperThreading
+ * when boost is newer than 1.56.
+ */
+int GetNumCores();
+
+void SetThreadPriority(int nPriority);
+void RenameThread(const char* name);
+std::string GetThreadName();
+
 template <typename Callable> void LoopForever(const char* name,  Callable func, int64_t msecs)
 {
     std::string s = strprintf("pivx-%s", name);

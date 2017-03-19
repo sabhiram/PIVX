@@ -79,6 +79,22 @@ public:
         return sizeof(data);
     }
 
+    uint64_t Get64(int n=0) const
+    {
+        return data[2*n] | (uint64_t)data[2*n+1] << 32;
+    }
+    /**
+     * Returns the position of the highest bit set plus one, or zero if the
+     * value is zero.
+     */
+    unsigned int bits() const;
+
+    uint64_t GetLow64() const
+    {
+        assert(WIDTH >= 2);
+        return data[0] | (uint64_t)data[1] << 32;
+    }
+
     unsigned int GetSerializeSize(int nType, int nVersion) const
     {
         return sizeof(data);
@@ -123,6 +139,7 @@ public:
      * used when the contents are considered uniformly random. It is not appropriate
      * when the value can easily be influenced from outside as e.g. a network adversary could
      * provide values to trigger worst-case behavior.
+     * @note The result of this function is not stable between little and big endian.
      */
     uint64_t GetCheapHash() const
     {
@@ -152,28 +169,6 @@ inline uint256 uint256S(const char *str)
 inline uint256 uint256S(const std::string& str)
 {
     uint256 rv;
-    rv.SetHex(str);
-    return rv;
-}
-
-/** 512-bit unsigned big integer. */
-class uint512 : public base_blob<512> {
-public:
-    uint512() {}
-    uint512(const base_blob<512>& b) : base_blob<512>(b) {}
-    explicit uint512(const std::vector<unsigned char>& vch) : base_blob<512>(vch) {}
-
-    uint256 trim256() const
-    {
-        uint256 result;
-        memcpy((void*)&result, (void*)data, 32);
-        return result;
-    }
-};
-
-inline uint512 uint512S(const std::string& str)
-{
-    uint512 rv;
     rv.SetHex(str);
     return rv;
 }

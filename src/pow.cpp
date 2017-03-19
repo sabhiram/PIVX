@@ -36,7 +36,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     if(chainActive.Tip()->nHeight > Params().LAST_POW_BLOCK())
     {
         const CBlockIndex* pindexPrev = chainActive.Tip();
-        uint256 bnTargetLimit = (~uint256(0) >> 24);
+	      arith_uint256 bnTargetLimit = (~arith_uint256(0) >> 24);
         int64_t nTargetSpacing = 60;
         int64_t nTargetTimespan = 60*40;
 
@@ -50,7 +50,7 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
         // ppcoin: target change every block
         // ppcoin: retarget with exponential moving toward target spacing
-        uint256 bnNew;
+        arith_uint256 bnNew;
         bnNew.SetCompact(pindexPrev->nBits);
 
         int64_t nInterval = nTargetTimespan / nTargetSpacing;
