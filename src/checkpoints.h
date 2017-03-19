@@ -32,3 +32,4 @@ double GuessVerificationProgress(const CCheckpointData& data, CBlockIndex* pinde
 
 #endif // BITCOIN_CHECKPOINTS_H
 
+

@@ -85,7 +85,8 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
 
     arith_uint256 bnNew(PastDifficultyAverage);
 
-    int64_t _nTargetTimespan = CountBlocks * params.nPowTargetSpacing;
+		// XX42    int64_t _nTargetTimespan = CountBlocks * params.nPowTargetSpacing;
+    int64_t _nTargetTimespan = CountBlocks * Params().TargetSpacing();
 
     if (nActualTimespan < _nTargetTimespan/3)
         nActualTimespan = _nTargetTimespan/3;
@@ -96,9 +97,14 @@ unsigned int GetNextWorkRequired(const CBlockIndex* pindexLast, const CBlockHead
     bnNew *= nActualTimespan;
     bnNew /= _nTargetTimespan;
 
+    if (bnNew > Params().ProofOfWorkLimit()){
+        bnNew = Params().ProofOfWorkLimit();
+    }
+		/* XX42
     if (bnNew > UintToArith256(params.powLimit)){
         bnNew = UintToArith256(params.powLimit);
     }
+		*/
 
     return bnNew.GetCompact();
 }
@@ -107,7 +113,7 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
 {
     bool fNegative;
     bool fOverflow;
-    uint256 bnTarget;
+    arith_uint256 bnTarget;
 
     if (Params().SkipProofOfWorkCheck() || Params().NetworkIDString() == CBaseChainParams::TESTNET)
        return true;
@@ -115,11 +121,11 @@ bool CheckProofOfWork(uint256 hash, unsigned int nBits)
     bnTarget.SetCompact(nBits, &fNegative, &fOverflow);
 
     // Check range
-    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > UintToArith256(params.powLimit))
+    if (fNegative || bnTarget == 0 || fOverflow || bnTarget > Params().ProofOfWorkLimit())
         return error("CheckProofOfWork(): nBits below minimum work");
 
     // Check proof of work matches claimed amount
-    if (hash > bnTarget && Params().NetworkIDString() != CBaseChainParams::TESTNET)
+    if (UintToArith256(hash) > bnTarget && Params().NetworkIDString() != CBaseChainParams::TESTNET)
         return error("CheckProofOfWork() : hash doesn't match nBits");
 
     return true;
