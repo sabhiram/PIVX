@@ -33,6 +33,8 @@ class CConsensusVote;
 class CTransaction;
 class CTransactionLock;
 
+static const int SWIFTTX_CONFIRMATIONS_REQUIRED = 6;
+static const int DEFAULT_SWIFTTX_DEPTH = 5;
 static const int MIN_SWIFTTX_PROTO_VERSION = 70103;
 
 extern map<uint256, CTransaction> mapTxLockReq;

@@ -109,13 +109,6 @@ BITCOIN_CORE_H = \
   darksend.h \
   dsnotificationinterface.h \
   darksend-relay.h \
-  governance.h \
-  governance-brain.h \
-  governance-classes.h \
-  governance-categories.h \
-  governance-keys.h \
-  governance-types.h \
-  governance-vote.h \
   hash.h \
   httprpc.h \
   httpserver.h \
@@ -257,11 +250,6 @@ libbitcoin_wallet_a_SOURCES = \
   darksend.cpp \
   dsnotificationinterface.cpp \
   darksend-relay.cpp \
-  governance.cpp \
-  governance-brain.cpp \ 
-  governance-classes.cpp \
-  governance-keys.cpp \
-  governance-vote.cpp \
   instantx.cpp \
   masternode.cpp \
   masternodeconfig.cpp \

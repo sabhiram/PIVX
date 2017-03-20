@@ -39,13 +39,46 @@ class CActiveMasternode;
 #define MASTERNODE_REJECTED                    0
 #define MASTERNODE_RESET                       -1
 
-#define OBFUSCATION_QUEUE_TIMEOUT                 30
-#define OBFUSCATION_SIGNING_TIMEOUT               15
-
 // used for anonymous relaying of inputs/outputs/sigs
 #define OBFUSCATION_RELAY_IN                 1
 #define OBFUSCATION_RELAY_OUT                2
 #define OBFUSCATION_RELAY_SIG                3
+
+
+
+// timeouts
+static const int OBFUSCATION_AUTO_TIMEOUT_MIN       = 5;
+static const int OBFUSCATION_AUTO_TIMEOUT_MAX       = 15;
+static const int OBFUSCATION_QUEUE_TIMEOUT          = 30;
+static const int OBFUSCATION_SIGNING_TIMEOUT        = 15;
+
+//! minimum peer version accepted by mixing pool
+static const int MIN_OBFUSCATION_PEER_PROTO_VERSION = 70206;
+
+static const int DENOMS_COUNT_MAX                   = 100;
+
+static const int DEFAULT_OBFUSCATION_ROUNDS         = 2;
+static const int DEFAULT_OBFUSCATION_AMOUNT         = 1000;
+static const int DEFAULT_OBFUSCATION_LIQUIDITY      = 0;
+static const bool DEFAULT_OBFUSCATION_MULTISESSION  = false;
+
+// Warn user if mixing in gui or try to create backup if mixing in daemon mode
+// when we have only this many keys left
+static const int PRIVATESEND_KEYS_THRESHOLD_WARNING = 100;
+// Stop mixing completely, it's too dangerous to continue when we have only this many keys left
+static const int PRIVATESEND_KEYS_THRESHOLD_STOP    = 50;
+
+extern int nObfuscationRounds;
+extern int nObfuscationAmount;
+extern int nLiquidityProvider;
+extern bool fEnableObfuscation;
+
+
+
+
+
+
+
 
 static const int64_t OBFUSCATION_COLLATERAL = (10*COIN);
 static const int64_t OBFUSCATION_POOL_MAX = (99999.99*COIN);
