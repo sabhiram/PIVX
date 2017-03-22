@@ -27,6 +27,7 @@
 #include "util.h"
 #include "utilmoneystr.h"
 #include "masternode-payments.h"
+#include "wallet/wallet.h"
 #include "validationinterface.h"
 
 #include <boost/thread.hpp>
@@ -61,7 +62,7 @@ public:
     }
 };
 
-int64_t UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev)
+void UpdateTime(CBlockHeader* pblock, const Consensus::Params& consensusParams, const CBlockIndex* pindexPrev)
 {
     int64_t nOldTime = pblock->nTime;
     int64_t nNewTime = std::max(pindexPrev->GetMedianTimePast()+1, GetAdjustedTime());
@@ -86,7 +87,7 @@ CBlockTemplate* CreateNewBlock(const CScript& scriptPubKeyIn, CWallet* pwallet, 
 
     // -regtest only: allow overriding block.nVersion with
     // -blockversion=N to test forking scenarios
-    if (chainparams.MineBlocksOnDemand())
+    if (Params().MineBlocksOnDemand())
         pblock->nVersion = GetArg("-blockversion", pblock->nVersion);
 
     // Create coinbase tx

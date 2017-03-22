@@ -22,7 +22,7 @@
 #include "ui_interface.h"
 #include "miner.h"
 #include "obfuscation.h"
-#include "wallet.h"
+#include "wallet/wallet.h"
 
 #ifdef WIN32
 #include <string.h>
