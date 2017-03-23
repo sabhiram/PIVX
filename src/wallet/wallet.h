@@ -536,6 +536,12 @@ public:
     //! Get wallet transactions that conflict with given transaction (spend same outputs)
     std::set<uint256> GetConflicts(const uint256& txid) const;
 
+    //! Flush wallet (bitdb flush)
+    void Flush(bool shutdown=false);
+
+    //! Verify the wallet database and perform salvage if required
+    static bool Verify(const std::string& walletFile, std::string& warningString, std::string& errorString);
+
     /** 
      * Address book entry changed.
      * @note called with lock cs_wallet held.
@@ -1036,7 +1042,7 @@ public:
         int nDepth = GetDepthInMainChain(false);
         if(nDepth < 0) return 0;
 
-        bool isUnconfirmed = !IsFinalTx(*this) || (!IsTrusted() && nDepth == 0);
+        bool isUnconfirmed = !IsFinalTx(*this, 0, 0) || (!IsTrusted() && nDepth == 0);
         if(unconfirmed != isUnconfirmed) return 0;
 
         if (fUseCache) {
@@ -1137,7 +1143,7 @@ public:
     bool IsTrusted() const
     {
         // Quick answer in most cases
-        if (!IsFinalTx(*this))
+        if (!IsFinalTx(*this, 0, 0))
             return false;
         int nDepth = GetDepthInMainChain();
         if (nDepth >= 1)

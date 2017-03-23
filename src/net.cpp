@@ -22,6 +22,7 @@
 #include "ui_interface.h"
 #include "miner.h"
 #include "obfuscation.h"
+#include "swifttx.h"
 #include "wallet/wallet.h"
 
 #ifdef WIN32
@@ -2094,7 +2095,7 @@ void RelayTransaction(const CTransaction& tx)
 
 void RelayTransaction(const CTransaction& tx, const CDataStream& ss)
 {
-    int nInv = mapDarksendBroadcastTxes.count(tx.GetHash()) ? MSG_DSTX :
+    int nInv = mapObfuscationBroadcastTxes.count(tx.GetHash()) ? MSG_DSTX :
                 (mapTxLockReq.count(tx.GetHash()) ? MSG_TXLOCK_REQUEST : MSG_TX);
     CInv inv(nInv, tx.GetHash());
     {

@@ -368,7 +368,8 @@ public:
     > indexed_transaction_set;
 
     mutable CCriticalSection cs;
-    indexed_transaction_set mapTx;
+// XX42    indexed_transaction_set mapTx;
+    std::map<uint256, CTxMemPoolEntry> mapTx;
     typedef indexed_transaction_set::nth_index<0>::type::iterator txiter;
     struct CompareIteratorByHash {
         bool operator()(const txiter &a, const txiter &b) const {

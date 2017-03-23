@@ -12,8 +12,8 @@
 #include <stdint.h>
 #include <string>
 #include <vector>
-#include "uint512.h"
 
+class uint512;
 class uint256;
 
 class uint_error : public std::runtime_error {
@@ -269,11 +269,6 @@ public:
         assert(WIDTH >= 2);
         return pn[0] | (uint64_t)pn[1] << 32;
     }
-    uint64_t Get64() const
-    {
-        assert(WIDTH >= 2);
-        return pn[0] | (uint64_t)pn[1] << 32;
-    }
 };
 
 /** 256-bit unsigned big integer. */
@@ -311,7 +306,6 @@ public:
     friend uint256 ArithToUint256(const arith_uint256 &);
     friend arith_uint256 UintToArith256(const uint256 &);
     uint64_t GetHash(const arith_uint256& salt) const;
-    uint64_t Get64() { return base_uint<256>::Get64(); }
 };
 
 

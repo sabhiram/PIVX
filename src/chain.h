@@ -6,7 +6,6 @@
 #ifndef BITCOIN_CHAIN_H
 #define BITCOIN_CHAIN_H
 
-#include "arith_uint256.h"
 #include "primitives/block.h"
 #include "pow.h"
 #include "tinyformat.h"
@@ -132,7 +131,7 @@ public:
     unsigned int nUndoPos;
 
     //! (memory only) Total amount of work (expected number of hashes) in the chain up to and including this block
-    arith_uint256 nChainWork;
+    uint256 nChainWork;
 
     //! Number of transactions in this block.
     //! Note: in a potential headers-first mode, this number cannot be relied upon
@@ -155,7 +154,7 @@ public:
     };
 
     // proof-of-stake specific fields
-    arith_uint256 GetBlockTrust() const;
+    uint256 GetBlockTrust() const;
     uint64_t nStakeModifier; // hash modifier for proof-of-stake
     unsigned int nStakeModifierChecksum; // checksum of index; in-memeory only
     COutPoint prevoutStake;
@@ -183,7 +182,7 @@ public:
         nFile = 0;
         nDataPos = 0;
         nUndoPos = 0;
-        nChainWork = arith_uint256();
+        nChainWork = uint256();
         nTx = 0;
         nChainTx = 0;
         nStatus = 0;
@@ -220,13 +219,14 @@ public:
         nNonce         = block.nNonce;
 
         //Proof of Stake
-        bnChainTrust.SetNull();
+        bnChainTrust = 0;
         nMint = 0;
         nMoneySupply = 0;
         nFlags = 0;
         nStakeModifier = 0;
         nStakeModifierChecksum = 0;
-        hashProofOfStake.SetNull();
+        hashProofOfStake = 0;
+        
         CBlock block2(block);
         if (block2.IsProofOfStake())
         {
@@ -436,7 +436,7 @@ public:
         {
             const_cast<CDiskBlockIndex*>(this)->prevoutStake.SetNull();
             const_cast<CDiskBlockIndex*>(this)->nStakeTime = 0;
-            const_cast<CDiskBlockIndex*>(this)->hashProofOfStake.SetNull();
+            const_cast<CDiskBlockIndex*>(this)->hashProofOfStake = 0;
         }
 
         // block header

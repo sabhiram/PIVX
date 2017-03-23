@@ -61,9 +61,9 @@ const CBlockIndex *CChain::FindFork(const CBlockIndex *pindex) const {
     return pindex;
 }
 
-arith_uint256 CBlockIndex::GetBlockTrust() const
+uint256 CBlockIndex::GetBlockTrust() const
 {
-    arith_uint256 bnTarget;
+    uint256 bnTarget;
     bnTarget.SetCompact(nBits);
     if (bnTarget <= 0)
         return 0;
@@ -71,12 +71,12 @@ arith_uint256 CBlockIndex::GetBlockTrust() const
     if (IsProofOfStake())
     {
         // Return trust score as usual
-        return (arith_uint256(1)<<256) / (bnTarget+1);
+        return (uint256(1)<<256) / (bnTarget+1);
     }
     else
     {
         // Calculate work amount for block
-        arith_uint256 bnPoWTrust = ((~arith_uint256(0) >> 20) / (bnTarget+1));
+        uint256 bnPoWTrust = ((~uint256(0) >> 20) / (bnTarget+1));
         return bnPoWTrust > 1 ? bnPoWTrust : 1;
     }
 }

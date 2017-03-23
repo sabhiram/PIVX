@@ -456,7 +456,7 @@ public:
 
     ~CAddrMan()
     {
-        nKey.SetNull();
+        nKey = uint256(0);
     }
 
     //! Return the number of (unique) addresses in all tables.
@@ -572,7 +572,7 @@ public:
     
     //! Ensure that bucket placement is always the same for testing purposes.
     void MakeDeterministic(){
-        nKey.SetNull(); //Do not use outside of tests.
+        nKey = uint256(0); //Do not use outside of tests.
     }
 
 };
