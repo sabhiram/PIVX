@@ -27,7 +27,9 @@
 #include "util.h"
 #include "utilmoneystr.h"
 #include "masternode-payments.h"
+#ifdef ENABLE_WALLET
 #include "wallet/wallet.h"
+#endif
 #include "validationinterface.h"
 
 #include <boost/thread.hpp>
@@ -668,13 +670,18 @@ void static ThreadBitcoinMiner(void* parg)
     LogPrintf("ThreadBitcoinMiner exiting\n");
 }
 
-void GenerateBitcoins(bool fGenerate, int nThreads, const CChainParams& chainparams)
+void GenerateBitcoins(bool fGenerate, CWallet* pwallet, int nThreads)
 {
     static boost::thread_group* minerThreads = NULL;
     fGenerateBitcoins = fGenerate;
 
-    if (nThreads < 0)
-        nThreads = GetNumCores();
+    if (nThreads < 0) {
+        // In regtest threads defaults to 1
+        if (Params().DefaultMinerThreads())
+            nThreads = Params().DefaultMinerThreads();
+        else
+            nThreads = boost::thread::hardware_concurrency();
+    }
 
     if (minerThreads != NULL)
     {

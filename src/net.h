@@ -406,6 +406,7 @@ public:
     std::vector<uint256> vBlockRequested;
    // Used for headers announcements - unfiltered blocks to relay
     // Also protected by cs_inventory
+    int64_t nNextInvSend;
     std::vector<uint256> vBlockHashesToAnnounce;
 
     // Ping time measurement:

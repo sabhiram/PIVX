@@ -216,9 +216,10 @@ void PrepareShutdown()
     StopHTTPServer();
 #ifdef ENABLE_WALLET
     if (pwalletMain)
+        GenerateBitcoins(false, pwalletMain, 0);
         pwalletMain->Flush(false);
 #endif
-    GenerateBitcoins(false, 0, Params());
+// XX42    GenerateBitcoins(false, 0, Params());
     StopNode();
     DumpMasternodes();
     DumpBudgets();

@@ -66,6 +66,9 @@ public:
     int ToCheckBlockUpgradeMajority() const { return nToCheckBlockUpgradeMajority; }
     int MaxReorganizationDepth() const { return nMaxReorganizationDepth; }
 
+    /** Used if GenerateBitcoins is called with a negative number of threads */
+    int DefaultMinerThreads() const { return nMinerThreads; }
+
     const CBlock& GenesisBlock() const { return genesis; }
     /** Make miner wait to have peers to avoid wasting work */
     bool MiningRequiresPeers() const { return fMiningRequiresPeers; }
