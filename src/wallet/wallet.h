@@ -53,11 +53,20 @@ static const CAmount DEFAULT_TRANSACTION_MAXFEE = 1 * COIN;
 //! -fallbackfee default
 static const CAmount DEFAULT_FALLBACK_FEE = 20000;
 //! -maxtxfee will warn if called with a higher fee than this amount (in satoshis)
+static const CAmount DEFAULT_TRANSACTION_MINFEE = 10000; // was 1000
+//! minimum change amount
+static const CAmount MIN_CHANGE = CENT;
+//! Default for -spendzeroconfchange
+static const bool DEFAULT_SPEND_ZEROCONF_CHANGE = true;
+//! Default for -sendfreetransactions
+static const bool DEFAULT_SEND_FREE_TRANSACTIONS = false;
+
 static const CAmount nHighTransactionMaxFeeWarning = 100 * nHighTransactionFeeWarning;
 //! Largest (in bytes) free transaction we're willing to create
 static const unsigned int MAX_FREE_TRANSACTION_CREATE_SIZE = 1000;
 //! Keypool size
 static const unsigned int DEFAULT_KEYPOOL_SIZE = 1000;
+static const bool DEFAULT_WALLETBROADCAST = true;
 
 class CAccountingEntry;
 class CCoinControl;

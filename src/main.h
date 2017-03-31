@@ -37,9 +37,10 @@ class CChainParams;
 class CInv;
 class CScriptCheck;
 class CTxMemPool;
-class CValidationInterface;
+// XX42 class CValidationInterface;
 class CValidationState;
 
+struct CBlockTemplate;
 struct CNodeStateStats;
  
 /** Allow testnet to catch up to mainnet */
@@ -125,6 +126,12 @@ static const unsigned int DEFAULT_BANSCORE_THRESHOLD = 100;
 static const bool DEFAULT_TESTSAFEMODE = false;
 /** Default for -mempoolreplacement */
 static const bool DEFAULT_ENABLE_REPLACEMENT = false;
+
+// XX42
+/** The maximum size for transactions we're willing to relay/mine */
+static const unsigned int MAX_STANDARD_TX_SIZE = 100000;
+/** The maximum allowed number of signature check operations in a block (network rule) */
+static const unsigned int MAX_BLOCK_SIGOPS = MAX_BLOCK_SIZE/50;
 
 /** Maximum number of headers to announce when relaying blocks with headers message.*/
 static const unsigned int MAX_BLOCKS_TO_ANNOUNCE = 8;
@@ -521,6 +528,13 @@ extern CCoinsViewCache *pcoinsTip;
 
 /** Global variable that points to the active block tree (protected by cs_main) */
 extern CBlockTreeDB *pblocktree;
+
+struct CBlockTemplate
+{
+    CBlock block;
+    std::vector<CAmount> vTxFees;
+    std::vector<int64_t> vTxSigOps;
+};
 
 /**
  * Return the spend height, which is one more than the inputs.GetBestBlock().
