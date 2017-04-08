@@ -17,6 +17,46 @@
 
 CCriticalSection cs_masternodes;
 
+/**
+ * Extension to QTableWidgetItem that facilitates proper ordering for "DHMS"
+ * strings (primarily used in the masternode's "active since" listing).
+ */
+class DHMSTableWidgetItem : public QTableWidgetItem
+{
+public:
+    /**
+     * Class constructor.
+     * @param[in] seconds   Number of seconds to convert to a DHMS string
+     */
+    DHMSTableWidgetItem(const int64_t seconds) :
+        QTableWidgetItem(),
+        value(seconds)
+    {
+        this->setText(QString::fromStdString(DurationToDHMS(seconds)));
+    }
+
+    /**
+     * Comparator overload to ensure that the "DHMS"-type durations as used in
+     * the "active-since" list in the masternode tab are sorted by the elapsed
+     * duration (versus the string value being sorted).
+     * @param[in] item      Right hand side of the less than operator
+     */
+    virtual bool operator <(QTableWidgetItem const &item) const
+    {
+        DHMSTableWidgetItem const *rhs =
+            dynamic_cast<DHMSTableWidgetItem const *>(&item);
+
+        if (!rhs)
+            return QTableWidgetItem::operator<(item);
+
+        return value < rhs->value;
+    }
+
+private:
+    // Private backing value for DHMS string, used for sorting.
+    int64_t value;
+};
+
 MasternodeList::MasternodeList(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::MasternodeList),
@@ -186,7 +226,7 @@ void MasternodeList::updateMyMasternodeInfo(QString strAlias, QString strAddr, C
     QTableWidgetItem *addrItem = new QTableWidgetItem(pmn ? QString::fromStdString(pmn->addr.ToString()) : strAddr);
     QTableWidgetItem *protocolItem = new QTableWidgetItem(QString::number(pmn ? pmn->protocolVersion : -1));
     QTableWidgetItem *statusItem = new QTableWidgetItem(QString::fromStdString(pmn ? pmn->GetStatus() : "MISSING"));
-    QTableWidgetItem *activeSecondsItem = new QTableWidgetItem(QString::fromStdString(DurationToDHMS(pmn ? (pmn->lastPing.sigTime - pmn->sigTime) : 0)));
+    DHMSTableWidgetItem *activeSecondsItem = new DHMSTableWidgetItem(pmn ? (pmn->lastPing.sigTime - pmn->sigTime) : 0);
     QTableWidgetItem *lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M", pmn ? pmn->lastPing.sigTime : 0)));
     QTableWidgetItem *pubkeyItem = new QTableWidgetItem(QString::fromStdString(pmn ? CBitcoinAddress(pmn->pubKeyCollateralAddress.GetID()).ToString() : ""));
 
@@ -257,7 +297,7 @@ void MasternodeList::updateNodeList()
         QTableWidgetItem *addressItem = new QTableWidgetItem(QString::fromStdString(mn.addr.ToString()));
         QTableWidgetItem *protocolItem = new QTableWidgetItem(QString::number(mn.protocolVersion));
         QTableWidgetItem *statusItem = new QTableWidgetItem(QString::fromStdString(mn.GetStatus()));
-        QTableWidgetItem *activeSecondsItem = new QTableWidgetItem(QString::fromStdString(DurationToDHMS(mn.lastPing.sigTime - mn.sigTime)));
+        DHMSTableWidgetItem *activeSecondsItem = new DHMSTableWidgetItem(mn.lastPing.sigTime - mn.sigTime);
         QTableWidgetItem *lastSeenItem = new QTableWidgetItem(QString::fromStdString(DateTimeStrFormat("%Y-%m-%d %H:%M", mn.lastPing.sigTime)));
         QTableWidgetItem *pubkeyItem = new QTableWidgetItem(QString::fromStdString(CBitcoinAddress(mn.pubKeyCollateralAddress.GetID()).ToString()));
 
